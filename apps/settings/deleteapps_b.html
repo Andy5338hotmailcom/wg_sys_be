@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>软件卸载工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: #1a1a1a;
+            color: white;
+            padding: 30px;
+        }
+        .title {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        .app-list {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .app-item {
+            background: #222;
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .app-name {
+            font-size: 16px;
+        }
+        .uninstall-btn {
+            background: #ff3b30;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .uninstall-btn:hover {
+            background: #ff2015;
+        }
+        .tip {
+            text-align: center;
+            color: #999;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2 class="title">Wildgoose 软件卸载</h2>
+    <div class="app-list" id="appList"></div>
+    <div class="tip">卸载后请刷新桌面生效</div>
+
+    <script>
+        // 加载已安装的软件
+        function loadInstalledApps() {
+            const list = JSON.parse(localStorage.getItem('app_list') || '[]');
+            const appList = document.getElementById('appList');
+            appList.innerHTML = '';
+
+            list.forEach(app => {
+                const item = document.createElement('div');
+                item.className = 'app-item';
+                item.innerHTML = `
+                    <div class="app-name">${app.name}</div>
+                    <button class="uninstall-btn" onclick="uninstall('${app.id}')">卸载</button>
+                `;
+                appList.appendChild(item);
+            });
+        }
+
+        // 卸载软件
+        function uninstall(appId) {
+            if (!confirm('确定要卸载此软件吗？')) return;
+
+            // 1. 从 app_list 删除
+            let list = JSON.parse(localStorage.getItem('app_list') || '[]');
+            list = list.filter(item => item.id !== appId);
+            localStorage.setItem('app_list', JSON.stringify(list));
+
+            // 2. 从桌面图标删除
+            let desk = JSON.parse(localStorage.getItem('desktopIcons') || '[]');
+            desk = desk.filter(id => id !== appId);
+            localStorage.setItem('desktopIcons', JSON.stringify(desk));
+
+            // 3. 刷新列表
+            loadInstalledApps();
+            alert('✅ 卸载成功！请刷新桌面！');
+        }
+
+        // 启动
+        loadInstalledApps();
+    </script>
+</body>
+</html>

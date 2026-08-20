@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>个性化设置</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            background: #fff;
+            color: #000;
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 220px;
+            background: #f5f5f5;
+            border-right: 1px solid #ddd;
+            padding: 20px 0;
+        }
+
+        .sidebar-item {
+            padding: 14px 20px;
+            cursor: pointer;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .sidebar-item:hover {
+                background: #e8e8e8;
+            }
+
+            .sidebar-item.active {
+                background: #007aff;
+                color: #fff;
+            }
+
+            .sidebar-item img {
+                width: 18px;
+                height: 18px;
+                object-fit: contain;
+            }
+
+        .main {
+            flex: 1;
+            padding: 40px;
+        }
+
+        .title {
+            font-size: 26px;
+            margin-bottom: 30px;
+        }
+
+        .box {
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .row {
+            margin: 16px 0;
+        }
+
+        button {
+            padding: 10px 18px;
+            background: #007aff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-item active">
+            <img src="personal.png" alt="">
+            个性化
+        </div>
+        <div class="sidebar-item" onclick="window.location.href='apps_w.html'">
+            <img src="apps.png" alt="">
+            软件卸载
+        </div>
+        <div class="sidebar-item" onclick="window.location.href='account_w.html'">
+            <img src="user.png" alt="">
+            账户
+        </div>
+        <div class="sidebar-item" onclick="window.location.href='about_w.html'">
+            <img src="about.svg" alt="">
+            关于
+        </div>
+    </div>
+
+    <div class="main">
+        <h2 class="title">个性化</h2>
+        <div class="box">
+            <div class="row">当前主题：白色</div>
+            <button onclick="switchToBlack()">切换到黑色主题</button>
+        </div>
+    </div>
+
+    <script>
+function switchToBlack() {
+    localStorage.setItem("WG_color", "b");
+    window.location.href = "personalized_b.html";
+}
+    </script>
+</body>
+</html>

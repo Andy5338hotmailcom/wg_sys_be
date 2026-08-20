@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>软件注册表</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: #ffffff;
+            color: #111122;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        h4 {
+            margin: 0 0 8px 0;
+            color: #333344;
+        }
+        textarea {
+            width: 100%;
+            height: 180px;
+            background: #f7f8fa;
+            color: #111;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 14px;
+            resize: vertical;
+        }
+        .btn-row {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+        }
+        button {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: none;
+            background: #4a5aff;
+            color: white;
+            cursor: pointer;
+        }
+        button.danger {
+            background: #ff4a66;
+        }
+        button.gray {
+            background: #889;
+        }
+        .tip {
+            color: #666;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>🧪 软件注册表编辑器</h2>
+    <p style="color:#666">编辑后重启桌面生效</p>
+
+    <!-- 1. 自定义应用列表 -->
+    <div class="section">
+        <h4>📱 自定义应用列表 (app_list)</h4>
+        <textarea id="app_list"></textarea>
+        <div class="btn-row">
+            <button onclick="saveAppList()">💾 保存</button>
+            <button class="gray" onclick="loadAppList()">📂 读取</button>
+            <button class="danger" onclick="clearAppList()">🗑️ 清空</button>
+        </div>
+        <div class="tip">格式：[{"id":"test","name":"测试","icon":"icon.png","path":"test.html"}]</div>
+    </div>
+
+    <!-- 2. 开始菜单固定应用 ( 你系统用的是 fixedApps ) -->
+    <div class="section">
+        <h4>📌 开始菜单固定应用 (fixedApps)</h4>
+        <textarea id="fixedApps"></textarea>
+        <div class="btn-row">
+            <button onclick="savePinned()">💾 保存</button>
+            <button class="gray" onclick="loadPinned()">📂 读取</button>
+            <button class="danger" onclick="clearPinned()">🗑️ 清空</button>
+        </div>
+        <div class="tip">格式：["doc","setting"]</div>
+    </div>
+
+    <!-- 3. 桌面图标应用 ( 你系统用的是 desktopIcons ) -->
+    <div class="section">
+        <h4>🖥️ 桌面图标应用 (desktopIcons)</h4>
+        <textarea id="desktopIcons"></textarea>
+        <div class="btn-row">
+            <button onclick="saveDesktop()">💾 保存</button>
+            <button class="gray" onclick="loadDesktop()">📂 读取</button>
+            <button class="danger" onclick="clearDesktop()">🗑️ 清空</button>
+        </div>
+        <div class="tip">格式：["doc","setting"]</div>
+    </div>
+</div>
+
+<script>
+    // 应用列表
+    function loadAppList() {
+        const v = localStorage.getItem("app_list") || "[]";
+        document.getElementById("app_list").value = v;
+    }
+    function saveAppList() {
+        try {
+            const v = document.getElementById("app_list").value.trim();
+            JSON.parse(v);
+            localStorage.setItem("app_list", v);
+            alert("✅ 保存成功！");
+        } catch(e) { alert("JSON错误："+e.message); }
+    }
+    function clearAppList() {
+        if(confirm("确定清空？")){
+            localStorage.removeItem("app_list");
+            loadAppList();
+        }
+    }
+
+    // 固定应用 → 你系统键名：fixedApps
+    function loadPinned() {
+        const v = localStorage.getItem("fixedApps") || "[]";
+        document.getElementById("fixedApps").value = v;
+    }
+    function savePinned() {
+        try {
+            const v = document.getElementById("fixedApps").value.trim();
+            JSON.parse(v);
+            localStorage.setItem("fixedApps", v);
+            alert("✅ 保存成功！");
+        } catch(e) { alert("JSON错误："+e.message); }
+    }
+    function clearPinned() {
+        if(confirm("确定清空？")){
+            localStorage.removeItem("fixedApps");
+            loadPinned();
+        }
+    }
+
+    // 桌面图标 → 你系统键名：desktopIcons
+    function loadDesktop() {
+        const v = localStorage.getItem("desktopIcons") || "[]";
+        document.getElementById("desktopIcons").value = v;
+    }
+    function saveDesktop() {
+        try {
+            const v = document.getElementById("desktopIcons").value.trim();
+            JSON.parse(v);
+            localStorage.setItem("desktopIcons", v);
+            alert("✅ 保存成功！");
+        } catch(e) { alert("JSON错误："+e.message); }
+    }
+    function clearDesktop() {
+        if(confirm("确定清空？")){
+            localStorage.removeItem("desktopIcons");
+            loadDesktop();
+        }
+    }
+
+    window.onload = () => {
+        loadAppList();
+        loadPinned();
+        loadDesktop();
+    };
+</script>
+</body>
+</html>
