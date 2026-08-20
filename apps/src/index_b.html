@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生点名程序</title>
+    <!-- Tailwind CSS v3 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 统一的 Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6C63FF',
+                        secondary: '#F59E0B',
+                        light: '#F3F4F6',
+                        dark: '#1F2937'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'bounce-in': 'bounceIn 0.5s ease-in-out',
+                        'pulse-scale': 'pulseScale 2s infinite',
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-in': 'slideIn 0.5s ease-in-out',
+                    },
+                    keyframes: {
+                        bounceIn: {
+                            '0%': { transform: 'scale(0.3)', opacity: '0' },
+                            '40%': { transform: 'scale(1.1)' },
+                            '80%': { transform: 'scale(0.9)' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
+                        },
+                        pulseScale: {
+                            '0%, 100%': { transform: 'scale(1)' },
+                            '50%': { transform: 'scale(1.05)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideIn: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow {
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            }
+            .glass-effect {
+                background: rgba(255, 255, 255, 0.25);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.18);
+            }
+            .card-hover {
+                transition: all 0.3s ease;
+            }
+            .card-hover:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-gray-800 min-h-screen font-sans">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- 顶部标题 -->
+        <header class="flex justify-between items-center mb-8">
+            <div class="text-center">
+                <h1 class="text-4xl font-bold text-primary mb-2 text-shadow">学生点名程序</h1>
+                <p class="text-gray-300">随机抽取学生，提高课堂互动效率</p>
+            </div>
+            <div class="flex space-x-3">
+                <a href="file-manager.html" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-purple-700 transition-colors">
+                    <i class="fa fa-folder-open mr-2"></i>文件管理
+                </a>
+            </div>
+        </header>
+
+        <!-- 主要内容区 -->
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- 左侧模式选择区 -->
+            <div class="lg:w-1/4 bg-gray-800 rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-primary mb-4 flex items-center">
+                    <i class="fa fa-list-ul mr-2"></i>点名模式
+                </h2>
+                <div class="space-y-3" id="mode-list">
+                    <!-- 模式列表将通过JavaScript动态生成 -->
+                    <div class="animate-pulse">
+                        <div class="h-10 bg-gray-700 rounded animate-pulse"></div>
+                        <div class="h-10 bg-gray-700 rounded animate-pulse mt-3"></div>
+                        <div class="h-10 bg-gray-700 rounded animate-pulse mt-3"></div>
+                    </div>
+                </div>
+
+                <hr class="my-6 border-gray-700">
+
+                <!-- 临时添加学生 -->
+                <h2 class="text-xl font-semibold text-primary mb-4 flex items-center">
+                    <i class="fa fa-user-plus mr-2"></i>临时添加
+                </h2>
+                <div class="flex">
+                    <input type="text" id="temp-student" placeholder="输入学生姓名" 
+                           class="flex-1 px-4 py-2 border border-gray-600 rounded-l-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-primary">
+                    <button id="add-temp" class="bg-primary text-white px-4 py-2 rounded-r-lg hover:bg-purple-700 transition-colors">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                </div>
+
+                <hr class="my-6 border-gray-700">
+
+                <!-- 统计信息 -->
+                <h2 class="text-xl font-semibold text-primary mb-4 flex items-center">
+                    <i class="fa fa-bar-chart mr-2"></i>统计信息
+                </h2>
+                <div class="bg-gray-700 rounded-lg p-4">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-300">总人数:</span>
+                        <span id="total-count" class="font-semibold text-white">0</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-300">已点名:</span>
+                        <span id="called-count" class="font-semibold text-white">0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-300">未点名:</span>
+                        <span id="remaining-count" class="font-semibold text-white">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧点名显示区 -->
+            <div class="lg:w-3/4 flex flex-col gap-6">
+                <!-- 点名显示卡片 -->
+                <div class="bg-gray-800 rounded-xl shadow-lg p-8 flex-grow flex flex-col items-center justify-center relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary to-secondary"></div>
+                    
+                    <div class="text-center mb-6">
+                        <h2 class="text-2xl font-semibold text-gray-100" id="current-mode">请选择点名模式</h2>
+                        <p class="text-gray-400" id="selection-status">准备就绪</p>
+                    </div>
+                    
+                    <div class="w-full max-w-md">
+                        <div class="bg-gray-700 rounded-xl p-8 mb-6 relative">
+                            <div class="absolute -top-4 -right-4 bg-secondary text-white rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold" id="name-number">1</div>
+                            <h1 class="text-6xl font-bold text-primary text-center animate-bounce-in" id="display-name">--</h1>
+                        </div>
+                    </div>
+                    
+                    <!-- 历史记录 -->
+                    <div class="w-full mt-6">
+                        <h3 class="text-lg font-semibold text-gray-100 mb-3 flex items-center">
+                            <i class="fa fa-history mr-2"></i>点名历史
+                        </h3>
+                        <div class="bg-gray-700 rounded-lg p-4 max-h-40 overflow-y-auto" id="history-list">
+                            <!-- 历史记录将通过JavaScript动态生成 -->
+                            <p class="text-gray-400 text-center italic">暂无记录</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 操作控制区 -->
+                <div class="bg-gray-800 rounded-xl shadow-lg p-6 flex flex-wrap gap-4 justify-center">
+                    <button id="prev-student" class="px-6 py-3 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fa fa-arrow-left mr-2"></i>上一位
+                    </button>
+                    <button id="random-student" class="px-8 py-3 bg-primary text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center text-lg font-semibold">
+                        <i class="fa fa-random mr-2"></i>随机抽取
+                    </button>
+                    <button id="next-student" class="px-6 py-3 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed">
+                        下一位<i class="fa fa-arrow-right ml-2"></i>
+                    </button>
+                    <button id="reset-all" class="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center">
+                        <i class="fa fa-refresh mr-2"></i>重置
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部信息 -->
+        <footer class="mt-12 text-center text-gray-400 text-sm">
+            <p>学生点名程序,欢迎使用，郭宸好制作</p>
+        </footer>
+    </div>
+
+    <!-- 模态框 - 重置确认 -->
+    <div id="reset-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-800 rounded-xl shadow-xl p-6 max-w-md w-full mx-4 animate-fade-in">
+            <h3 class="text-xl font-semibold text-gray-100 mb-4">确认重置</h3>
+            <p class="text-gray-300 mb-6">确定要重置当前点名模式吗？这将清除所有已点名记录。</p>
+            <div class="flex justify-end gap-3">
+                <button id="cancel-reset" class="px-4 py-2 bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-600 transition-colors">
+                    取消
+                </button>
+                <button id="confirm-reset" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                    确认重置
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 全局变量
+        let currentMode = null;
+        let students = [];
+        let remainingStudents = [];
+        let calledStudents = [];
+        let historyIndex = -1;
+        let tempStudents = [];
+
+        // DOM 元素
+        const modeList = document.getElementById('mode-list');
+        const displayName = document.getElementById('display-name');
+        const currentModeElement = document.getElementById('current-mode');
+        const selectionStatus = document.getElementById('selection-status');
+        const nameNumber = document.getElementById('name-number');
+        const historyList = document.getElementById('history-list');
+        const totalCount = document.getElementById('total-count');
+        const calledCount = document.getElementById('called-count');
+        const remainingCount = document.getElementById('remaining-count');
+        const randomStudentBtn = document.getElementById('random-student');
+        const prevStudentBtn = document.getElementById('prev-student');
+        const nextStudentBtn = document.getElementById('next-student');
+        const resetAllBtn = document.getElementById('reset-all');
+        const resetModal = document.getElementById('reset-modal');
+        const cancelResetBtn = document.getElementById('cancel-reset');
+        const confirmResetBtn = document.getElementById('confirm-reset');
+        const tempStudentInput = document.getElementById('temp-student');
+        const addTempBtn = document.getElementById('add-temp');
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            loadModes();
+            setupEventListeners();
+        });
+
+        // 加载点名模式
+        function loadModes() {
+            // 从localStorage加载文件
+            const storedFiles = localStorage.getItem('rollCallFiles');
+            
+            if (storedFiles) {
+                const files = JSON.parse(storedFiles);
+                const modes = files.map(file => ({
+                    id: file.id,
+                    name: file.name.replace('.txt', ''),
+                    file: file.name
+                }));
+                
+                renderModeList(modes);
+            } else {
+                // 初始化示例文件
+                const exampleFiles = [
+                    {
+                        id: 'cs',
+                        name: '学号（40）.txt',
+                        size: 42,
+                        lastModified: Date.now(),
+                        content: '1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40'
+                    },
+                    {
+                        id: 'literature',
+                        name: '学号（47）.txt',
+                        size: 42,
+                        lastModified: Date.now(),
+                        content: '1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40\n41\n42\n43\n44\n45\n46\n47'
+                    }
+                ];
+                
+                localStorage.setItem('rollCallFiles', JSON.stringify(exampleFiles));
+                
+                const modes = exampleFiles.map(file => ({
+                    id: file.id,
+                    name: file.name.replace('.txt', ''),
+                    file: file.name
+                }));
+                
+                renderModeList(modes);
+            }
+        }
+
+        // 渲染模式列表
+        function renderModeList(modes) {
+            modeList.innerHTML = '';
+            
+            modes.forEach(mode => {
+                const modeItem = document.createElement('div');
+                modeItem.className = `p-3 rounded-lg cursor-pointer transition-colors ${currentMode === mode.id ? 'bg-primary text-white' : 'bg-gray-700 hover:bg-gray-600 text-white'}`;
+                modeItem.dataset.modeId = mode.id;
+                modeItem.dataset.modeFile = mode.file;
+                modeItem.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span>${mode.name}</span>
+                        <i class="fa ${currentMode === mode.id ? 'fa-check-circle' : 'fa-circle-o'}"></i>
+                    </div>
+                `;
+                modeItem.addEventListener('click', () => selectMode(mode.id, mode.name, mode.file));
+                modeList.appendChild(modeItem);
+            });
+        }
+
+        // 选择点名模式
+        function selectMode(modeId, modeName, modeFile) {
+            currentMode = modeId;
+            currentModeElement.textContent = modeName;
+            
+            // 重新渲染模式列表以更新选中状态
+            loadModes();
+            
+            // 加载学生名单
+            loadStudents(modeFile);
+        }
+
+        // 加载学生名单
+        function loadStudents(fileName) {
+            // 从localStorage加载文件
+            const storedFiles = localStorage.getItem('rollCallFiles');
+            
+            if (!storedFiles) {
+                selectionStatus.textContent = '未找到学生名单文件';
+                selectionStatus.className = 'text-red-400';
+                return;
+            }
+            
+            const files = JSON.parse(storedFiles);
+            const file = files.find(f => f.name === fileName);
+            
+            if (!file) {
+                selectionStatus.textContent = `未找到文件: ${fileName}`;
+                selectionStatus.className = 'text-red-400';
+                return;
+            }
+            
+            // 重置状态
+            students = [];
+            remainingStudents = [];
+            calledStudents = [];
+            historyIndex = -1;
+            tempStudents = [];
+            
+            // 从文件内容加载学生名单
+            students = file.content.split('\n').filter(name => name.trim() !== '');
+            
+            // 初始化剩余学生列表
+            remainingStudents = [...students];
+            
+            // 更新显示
+            updateDisplay();
+            updateStatistics();
+            renderHistoryList();
+            
+            // 更新状态
+            selectionStatus.textContent = '已加载学生名单';
+            selectionStatus.className = 'text-green-400';
+            
+            // 启用按钮
+            randomStudentBtn.disabled = false;
+            resetAllBtn.disabled = false;
+            prevStudentBtn.disabled = true;
+            nextStudentBtn.disabled = true;
+        }
+
+        // 随机抽取学生
+        function randomStudent() {
+            if (remainingStudents.length === 0) {
+                selectionStatus.textContent = '所有学生已点名完毕';
+                selectionStatus.className = 'text-yellow-400';
+                return;
+            }
+            
+            // 从剩余学生中随机选择一个
+            const randomIndex = Math.floor(Math.random() * remainingStudents.length);
+            const selectedStudent = remainingStudents[randomIndex];
+            
+            // 将选中的学生移到已点名列表
+            calledStudents.push(selectedStudent);
+            remainingStudents.splice(randomIndex, 1);
+            
+            // 更新历史索引
+            historyIndex = calledStudents.length - 1;
+            
+            // 更新显示
+            updateDisplay();
+            updateStatistics();
+            renderHistoryList();
+            
+            // 更新状态
+            selectionStatus.textContent = '已随机抽取学生';
+            selectionStatus.className = 'text-green-400';
+            
+            // 添加动画效果
+            displayName.classList.remove('animate-bounce-in');
+            void displayName.offsetWidth; // 触发重排
+            displayName.classList.add('animate-bounce-in');
+            
+            // 更新按钮状态
+            prevStudentBtn.disabled = calledStudents.length <= 1;
+            nextStudentBtn.disabled = true;
+        }
+
+        // 上一位学生
+        function prevStudent() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                updateDisplay();
+                
+                // 更新状态
+                selectionStatus.textContent = '查看历史记录';
+                selectionStatus.className = 'text-blue-400';
+                
+                // 更新按钮状态
+                prevStudentBtn.disabled = historyIndex === 0;
+                nextStudentBtn.disabled = false;
+            }
+        }
+
+        // 下一位学生
+        function nextStudent() {
+            if (historyIndex < calledStudents.length - 1) {
+                historyIndex++;
+                updateDisplay();
+                
+                // 更新状态
+                selectionStatus.textContent = '查看历史记录';
+                selectionStatus.className = 'text-blue-400';
+                
+                // 更新按钮状态
+                prevStudentBtn.disabled = false;
+                nextStudentBtn.disabled = historyIndex === calledStudents.length - 1;
+            }
+        }
+
+        // 重置点名
+        function resetRollCall() {
+            // 显示确认对话框
+            resetModal.classList.remove('hidden');
+        }
+
+        // 确认重置
+        function confirmReset() {
+            // 重置状态
+            remainingStudents = [...students, ...tempStudents];
+            calledStudents = [];
+            historyIndex = -1;
+            
+            // 更新显示
+            displayName.textContent = '--';
+            nameNumber.textContent = '0';
+            updateStatistics();
+            renderHistoryList();
+            
+            // 更新状态
+            selectionStatus.textContent = '已重置点名';
+            selectionStatus.className = 'text-green-400';
+            
+            // 更新按钮状态
+            prevStudentBtn.disabled = true;
+            nextStudentBtn.disabled = true;
+            
+            // 隐藏对话框
+            resetModal.classList.add('hidden');
+        }
+
+        // 添加临时学生
+        function addTempStudent() {
+            const name = tempStudentInput.value.trim();
+            
+            if (name && currentMode) {
+                // 检查是否已存在
+                if (students.includes(name) || tempStudents.includes(name)) {
+                    selectionStatus.textContent = '该学生已存在';
+                    selectionStatus.className = 'text-red-400';
+                    return;
+                }
+                
+                // 添加到临时学生列表
+                tempStudents.push(name);
+                remainingStudents.push(name);
+                
+                // 更新显示
+                updateStatistics();
+                
+                // 清空输入框
+                tempStudentInput.value = '';
+                
+                // 更新状态
+                selectionStatus.textContent = `已添加临时学生: ${name}`;
+                selectionStatus.className = 'text-green-400';
+            }
+        }
+
+        // 更新显示
+        function updateDisplay() {
+            if (calledStudents.length > 0 && historyIndex >= 0) {
+                displayName.textContent = calledStudents[historyIndex];
+                nameNumber.textContent = historyIndex + 1;
+            } else {
+                displayName.textContent = '--';
+                nameNumber.textContent = '0';
+            }
+        }
+
+        // 更新统计信息
+        function updateStatistics() {
+            const total = students.length + tempStudents.length;
+            const called = calledStudents.length;
+            const remaining = total - called;
+            
+            totalCount.textContent = total;
+            calledCount.textContent = called;
+            remainingCount.textContent = remaining;
+        }
+
+        // 渲染历史记录列表
+        function renderHistoryList() {
+            historyList.innerHTML = '';
+            
+            if (calledStudents.length === 0) {
+                historyList.innerHTML = '<p class="text-gray-400 text-center italic">暂无记录</p>';
+                return;
+            }
+            
+            calledStudents.forEach((student, index) => {
+                const historyItem = document.createElement('div');
+                historyItem.className = `flex items-center justify-between py-1 px-2 rounded ${index === historyIndex ? 'bg-primary bg-opacity-10 text-primary' : 'hover:bg-gray-700'}`;
+                historyItem.innerHTML = `
+                    <span class="font-medium">${index + 1}. ${student}</span>
+                    <span class="text-xs text-gray-400">${new Date().toLocaleTimeString()}</span>
+                `;
+                historyList.appendChild(historyItem);
+            });
+            
+            // 滚动到底部
+            historyList.scrollTop = historyList.scrollHeight;
+        }
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 按钮事件
+            randomStudentBtn.addEventListener('click', randomStudent);
+            prevStudentBtn.addEventListener('click', prevStudent);
+            nextStudentBtn.addEventListener('click', nextStudent);
+            resetAllBtn.addEventListener('click', resetRollCall);
+            cancelResetBtn.addEventListener('click', () => resetModal.classList.add('hidden'));
+            confirmResetBtn.addEventListener('click', confirmReset);
+            
+            // 添加临时学生
+            addTempBtn.addEventListener('click', addTempStudent);
+            tempStudentInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    addTempStudent();
+                }
+            });
+            
+            // 初始禁用按钮
+            randomStudentBtn.disabled = true;
+            resetAllBtn.disabled = true;
+            prevStudentBtn.disabled = true;
+            nextStudentBtn.disabled = true;
+        }
+    </script>
+</body>
+</html>
