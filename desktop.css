@@ -1,0 +1,389 @@
+/* 全局重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+    font-family: "Microsoft YaHei", sans-serif;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+    background: url("bg.jpg") center/cover no-repeat;
+    overflow: hidden;
+    position: relative;
+}
+
+/* ======================== */
+/* 桌面图标 */
+/* ======================== */
+#desktop-icons {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    position: relative;
+    z-index: 1;
+}
+
+.desktop-icon {
+    width: 70px;
+    text-align: center;
+    color: white;
+    font-size: 12px;
+    cursor: pointer;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    border-radius: 6px;
+    padding: 4px;
+    transition: 0.2s;
+}
+
+    .desktop-icon:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: scale(1.05);
+    }
+
+    .desktop-icon img {
+        width: 48px;
+        height: 48px;
+        margin-bottom: 4px;
+    }
+
+/* ======================== */
+/* 任务栏 */
+/* ======================== */
+.taskbar {
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 50px;
+    background: rgba(20, 20, 20, 0.5);
+    backdrop-filter: blur(20px);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 12px;
+    z-index: 9999;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.start-btn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+    .start-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+.task-apps {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.task-app-item {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+    .task-app-item:hover {
+        background: rgba(255,255,255,0.2);
+        transform: scale(1.08);
+    }
+
+    .task-app-item img {
+        width: 20px;
+        height: 20px;
+        object-fit: contain;
+    }
+
+.task-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: white;
+    font-size: 12px;
+    margin-left: auto;
+}
+
+.show-desktop {
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+    .show-desktop:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+.time {
+    min-width: 80px;
+    text-align: right;
+}
+
+/* ======================== */
+/* 开始菜单 */
+/* ======================== */
+.start-menu {
+    position: fixed;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 340px;
+    background: rgba(20, 20, 20, 0.9);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 20px;
+    color: white;
+    display: none;
+    z-index: 9998;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+}
+
+.search-box {
+    margin-bottom: 16px;
+}
+
+#appSearch {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: none;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    font-size: 14px;
+    outline: none;
+    transition: 0.2s;
+}
+
+    #appSearch:focus {
+        background: rgba(255,255,255,0.15);
+    }
+
+.fixed-apps {
+    margin-bottom: 16px;
+}
+
+    .fixed-apps h4 {
+        font-size: 12px;
+        color: #aaa;
+        margin-bottom: 8px;
+    }
+
+.all-apps {
+    max-height: 220px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+}
+
+    .all-apps h4 {
+        font-size: 12px;
+        color: #aaa;
+        margin-bottom: 8px;
+    }
+
+.app-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+    .app-item:hover {
+        background: rgba(255,255,255,0.1);
+        padding-left: 14px;
+    }
+
+    .app-item img {
+        width: 24px;
+        height: 24px;
+        object-fit: contain;
+    }
+
+.power-row {
+    display: flex;
+    gap: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #333;
+}
+
+.power-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+    .power-btn.restart {
+        background: #333;
+    }
+
+    .power-btn.shutdown {
+        background: #d32f2f;
+    }
+
+    .power-btn.logout {
+        background: #555;
+    }
+
+    .power-btn:hover {
+        filter: brightness(1.15);
+    }
+
+/* ======================== */
+/* 应用窗口 */
+/* ======================== */
+.app-window {
+    position: absolute;
+    width: 600px;
+    height: 400px;
+    background: #1a1a1a;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    color: white;
+    z-index: 100;
+    transition: all 0.2s ease;
+    resize: both;
+    min-width: 300px;
+    min-height: 200px;
+}
+
+.window-header {
+    padding: 10px 14px;
+    background: #2a2a2a;
+    display: flex;
+    justify-content: space-between;
+    cursor: move;
+}
+
+.window-actions {
+    display: flex;
+    gap: 1px; /* 按钮之间无缝，更像系统原生 */
+}
+
+    .window-actions button {
+        background: transparent;
+        border: none;
+        width: 45px; /* 系统级宽度，点击更舒服 */
+        height: 32px; /* 和标题栏高度匹配 */
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s ease;
+        position: relative;
+        font-size: 0; /* 彻底隐藏原来的符号 */
+    }
+
+    /* 最小化按钮：纯横线，系统风格 */
+    .window-actions .minimize::after {
+        content: "";
+        width: 14px;
+        height: 2px;
+        background: #ccc;
+        border-radius: 1px;
+    }
+
+    /* 最大化按钮：纯方框，系统风格 */
+    .window-actions .maximize::after {
+        content: "";
+        width: 12px;
+        height: 12px;
+        border: 2px solid #ccc;
+        border-radius: 1px;
+        box-sizing: border-box;
+    }
+
+    /* 关闭按钮：纯叉号，系统风格 */
+    .window-actions .close::after {
+        content: "";
+        position: absolute;
+        width: 14px;
+        height: 14px;
+    }
+    /* 画叉号的两条线 */
+    .window-actions .close::before {
+        content: "";
+        width: 14px;
+        height: 2px;
+        background: #ccc;
+        transform: rotate(45deg);
+        border-radius: 1px;
+    }
+
+    .window-actions .close::after {
+        content: "";
+        width: 14px;
+        height: 2px;
+        background: #ccc;
+        transform: rotate(-45deg);
+        border-radius: 1px;
+    }
+
+    /* 悬浮效果（1:1 还原 Windows） */
+    .window-actions .minimize:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+        .window-actions .minimize:hover::after {
+            background: white;
+        }
+
+    .window-actions .maximize:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+        .window-actions .maximize:hover::after {
+            border-color: white;
+        }
+
+    .window-actions .close:hover {
+        background: #e81123; /* Windows 原生关闭红 */
+    }
+
+        .window-actions .close:hover::before,
+        .window-actions .close:hover::after {
+            background: white;
+        }
+
+iframe {
+    width: 100%;
+    height: calc(100% - 42px);
+    border: none;
+    background: white;
+}
+
+.app-window.maximized {
+    width: 100vw !important;
+    height: calc(100vh - 70px) !important;
+    top: 0 !important;
+    left: 0 !important;
+    border-radius: 0;
+}

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统安装</title>
+    <!-- Tailwind CSS v3 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#60a5fa',
+                        dark: '#1e3a8a',
+                        light: '#eff6ff'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .glass-effect {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+            }
+
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            }
+
+            .progress-bar {
+                transition: width 0.5s ease-in-out;
+            }
+        }
+    </style>
+    <style>
+        body {
+            background-image: url('../bg.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+
+        .step {
+            display: none;
+        }
+
+            .step.active {
+                display: block;
+                animation: fadeIn 0.5s ease-in-out;
+            }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .button-hover {
+            transition: all 0.3s ease;
+        }
+
+            .button-hover:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            }
+
+        .restart-animation {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <!-- 安装窗口 -->
+    <div class="w-full max-w-2xl glass-effect rounded-lg shadow-2xl overflow-hidden">
+        <!-- 窗口标题栏 -->
+        <div class="bg-dark bg-opacity-70 px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center">
+                <img src="../icon.png"
+                     class="w-6 h-6 text-primary mr-3 object-contain"
+                     alt="图标">
+                <h1 class="text-light text-xl font-semibold text-shadow">系统安装</h1>
+            </div>
+        </div>
+
+        <!-- 安装内容区域 -->
+        <div class="px-8 py-6">
+            <!-- 步骤指示器 -->
+            <div class="flex justify-between mb-8">
+                <div class="step-indicator flex flex-col items-center" data-step="1">
+                    <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center mb-2 step-1-active">1</div>
+                    <span class="text-xs text-light">确认安装</span>
+                </div>
+                <div class="flex-1 mx-2 relative">
+                    <div class="absolute top-4 left-0 right-0 h-0.5 bg-gray-600"></div>
+                    <div class="absolute top-4 left-0 h-0.5 bg-primary transition-all duration-500" id="progress-line-1"></div>
+                </div>
+                <div class="step-indicator flex flex-col items-center" data-step="2">
+                    <div class="w-8 h-8 rounded-full bg-gray-600 text-white flex items-center justify-center mb-2" id="step-2-indicator">2</div>
+                    <span class="text-xs text-light">安装进度</span>
+                </div>
+                <div class="flex-1 mx-2 relative">
+                    <div class="absolute top-4 left-0 right-0 h-0.5 bg-gray-600"></div>
+                    <div class="absolute top-4 left-0 h-0.5 bg-primary transition-all duration-500" id="progress-line-2"></div>
+                </div>
+                <div class="step-indicator flex flex-col items-center" data-step="3">
+                    <div class="w-8 h-8 rounded-full bg-gray-600 text-white flex items-center justify-center mb-2" id="step-3-indicator">3</div>
+                    <span class="text-xs text-light">重启系统</span>
+                </div>
+            </div>
+
+            <!-- 步骤内容 -->
+            <div class="steps-container">
+                <!-- 步骤1：确认安装 -->
+                <div class="step active" id="step-1">
+                    <div class="text-center mb-6">
+                        <i class="fa fa-info-circle text-primary text-4xl mb-4"></i>
+                        <h2 class="text-2xl font-bold text-light mb-2">欢迎使用系统安装向导</h2>
+                        <p class="text-gray-300">请确认您要安装此系统。安装过程将需要几分钟时间。</p>
+                    </div>
+
+                    <div class="bg-dark bg-opacity-50 rounded-lg p-4 mb-6">
+                        <h3 class="text-lg font-semibold text-primary mb-3">系统信息</h3>
+                        <div class="space-y-2 text-gray-300">
+                            <div class="flex justify-between">
+                                <span>系统版本：</span>
+                                <span class="font-medium">Wildgoose Beginning Edition</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>所需空间：</span>
+                                <span class="font-medium">5 GB</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>系统要求：</span>
+                                <span class="font-medium">8 GB RAM, 64 GB 磁盘空间</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>当前系统：</span>
+                                <span class="font-medium">符合全部要求</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <button id="cancel-btn" class="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded transition-colors">
+                            取消
+                        </button>
+                        <button id="start-install" class="px-6 py-2 bg-primary hover:bg-blue-600 text-white rounded button-hover">
+                            确认安装
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 步骤2：安装进度 -->
+                <div class="step" id="step-2">
+                    <div class="text-center mb-6">
+                        <i class="fa fa-spinner fa-spin text-primary text-4xl mb-4"></i>
+                        <h2 class="text-2xl font-bold text-light mb-2">正在安装系统</h2>
+                        <p class="text-gray-300" id="installation-status">准备安装文件...</p>
+                    </div>
+
+                    <div class="mb-6">
+                        <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+                            <div id="progress-bar" class="h-full bg-primary progress-bar" style="width: 0%"></div>
+                        </div>
+                        <div class="flex justify-between mt-2 text-sm text-gray-400">
+                            <span>0%</span>
+                            <span id="progress-percentage">0%</span>
+                            <span>100%</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-dark bg-opacity-50 rounded-lg p-4 mb-6 h-32 overflow-y-auto">
+                        <h3 class="text-lg font-semibold text-primary mb-2">安装日志</h3>
+                        <div id="installation-log" class="text-xs text-gray-300 font-mono">
+                            <p>初始化安装程序...</p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button id="cancel-install" class="px-4 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded transition-colors">
+                            取消安装
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 步骤3：重启系统 -->
+                <div class="step" id="step-3">
+                    <div class="text-center mb-6">
+                        <i class="fa fa-check-circle text-green-500 text-4xl mb-4"></i>
+                        <h2 class="text-2xl font-bold text-light mb-2">安装完成</h2>
+                        <p class="text-gray-300">系统已成功安装。请重启系统以完成第二阶段。</p>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <button id="restart-now" class="px-6 py-2 bg-green-600 hover:bg-green-500 text-white rounded button-hover restart-animation">
+                            进入第二阶段
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取DOM元素
+            const startInstallBtn = document.getElementById('start-install');
+            const cancelInstallBtn = document.getElementById('cancel-install');
+            const restartNowBtn = document.getElementById('restart-now');
+            const progressBar = document.getElementById('progress-bar');
+            const progressPercentage = document.getElementById('progress-percentage');
+            const installationStatus = document.getElementById('installation-status');
+            const installationLog = document.getElementById('installation-log');
+            const step2Indicator = document.getElementById('step-2-indicator');
+            const step3Indicator = document.getElementById('step-3-indicator');
+            const progressLine1 = document.getElementById('progress-line-1');
+            const progressLine2 = document.getElementById('progress-line-2');
+
+            // 安装步骤日志
+            const installLogs = [
+                '初始化安装程序...',
+                '检查系统兼容性...',
+                '创建分区表...',
+                '格式化系统分区...',
+                '复制系统文件 (1/3)...',
+                '复制系统文件 (2/3)...',
+                '复制系统文件 (3/3)...',
+                '安装系统组件...',
+                '配置系统设置...',
+                '安装驱动程序...',
+                '创建系统账户...',
+                '第一步安装完成...'
+            ];
+
+            // 开始安装按钮点击事件
+            startInstallBtn.addEventListener('click', function() {
+                // 切换到步骤2
+                document.getElementById('step-1').classList.remove('active');
+                document.getElementById('step-2').classList.add('active');
+
+                // 更新步骤指示器
+                step2Indicator.classList.remove('bg-gray-600');
+                step2Indicator.classList.add('bg-primary');
+                progressLine1.style.width = '100%';
+
+                // 开始模拟安装过程
+                simulateInstallation();
+            });
+
+            // 取消安装按钮点击事件
+            cancelInstallBtn.addEventListener('click', function() {
+                // 跳转到停止页面
+                window.location.href = 'stop.html';
+            });
+
+            // 步骤1取消按钮点击事件
+            document.getElementById('cancel-btn').addEventListener('click', function() {
+                // 跳转到停止页面
+                window.location.href = 'stop.html';
+            });
+
+            // 立即重启按钮点击事件
+            restartNowBtn.addEventListener('click', function() {
+                // 立即跳转到重启页面，不显示确认框
+                window.location.href = 'restart.html';
+            });
+
+            // 模拟安装过程
+            function simulateInstallation() {
+                let progress = 0;
+                let logIndex = 0;
+
+                // 每500毫秒更新一次进度
+                const interval = setInterval(function() {
+                    // 随机增加进度
+                    const increment = Math.floor(Math.random() * 8) + 1;
+                    progress = Math.min(progress + increment, 100);
+
+                    // 更新进度条和百分比
+                    progressBar.style.width = progress + '%';
+                    progressPercentage.textContent = progress + '%';
+
+                    // 更新安装状态
+                    if (progress < 20) {
+                        installationStatus.textContent = '准备安装文件...';
+                    } else if (progress < 60) {
+                        installationStatus.textContent = '正在安装系统文件...';
+                    } else if (progress < 90) {
+                        installationStatus.textContent = '配置系统设置...';
+                    } else {
+                        installationStatus.textContent = '第一步安装完成...';
+                    }
+
+                    // 更新安装日志
+                    if (logIndex < installLogs.length && progress >= logIndex * (100 / installLogs.length)) {
+                        const logEntry = document.createElement('p');
+                        logEntry.textContent = installLogs[logIndex];
+                        installationLog.appendChild(logEntry);
+                        installationLog.scrollTop = installationLog.scrollHeight;
+                        logIndex++;
+                    }
+
+                    // 安装完成
+                    if (progress >= 100) {
+                        clearInterval(interval);
+
+                        // 延迟一秒后切换到步骤3
+                        setTimeout(function() {
+                            document.getElementById('step-2').classList.remove('active');
+                            document.getElementById('step-3').classList.add('active');
+
+                            // 更新步骤指示器
+                            step3Indicator.classList.remove('bg-gray-600');
+                            step3Indicator.classList.add('bg-primary');
+                            progressLine2.style.width = '100%';
+                        }, 1000);
+                    }
+                }, 500);
+            }
+
+            // 重置安装过程
+            function resetInstallation() {
+                // 重置进度条和日志
+                progressBar.style.width = '0%';
+                progressPercentage.textContent = '0%';
+                installationStatus.textContent = '准备安装文件...';
+                installationLog.innerHTML = '<p>初始化安装程序...</p>';
+
+                // 重置步骤指示器
+                step2Indicator.classList.remove('bg-primary');
+                step2Indicator.classList.add('bg-gray-600');
+                step3Indicator.classList.remove('bg-primary');
+                step3Indicator.classList.add('bg-gray-600');
+                progressLine1.style.width = '0%';
+                progressLine2.style.width = '0%';
+
+                // 切换回步骤1
+                document.getElementById('step-2').classList.remove('active');
+                document.getElementById('step-3').classList.remove('active');
+                document.getElementById('step-1').classList.add('active');
+            }
+        });
+    </script>
+</body>
+</html>
