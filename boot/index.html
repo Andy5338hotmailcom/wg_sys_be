@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>更多启动选项</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#9333ea',
+                        secondary: '#a855f7',
+                        accent: '#c084fc',
+                        light: '#f3e8ff',
+                        dark: '#4c1d95'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
+                        'neon': '0 0 5px theme("colors.accent"), 0 0 20px theme("colors.accent")'
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .glass-effect {
+                @apply bg-white/10 backdrop-blur-md border border-white/20 shadow-glass;
+            }
+            .btn-hover {
+                @apply transition-all duration-300 hover:shadow-neon hover:scale-105;
+            }
+            .text-gradient {
+                @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-light to-secondary p-4">
+    <!-- 主容器 -->
+    <div class="w-full max-w-md glass-effect rounded-2xl p-8 animate-float">
+        <!-- 标题 -->
+        <h1 class="text-[clamp(2rem,5vw,3rem)] font-bold text-center mb-10 text-gradient">
+            <i class="fa fa-ellipsis-h mr-3"></i>更多启动选项
+        </h1>
+        
+        <!-- 选项列表 -->
+        <div class="space-y-4">
+            <!-- 安全模式 -->
+            <div class="glass-effect rounded-xl p-5 btn-hover cursor-pointer">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-4">
+                        <i class="fa fa-shield text-xl text-primary"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-semibold text-white">安全模式</h2>
+                        <p class="text-light/80 text-xs">最小化驱动程序启动</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 网络安全模式 -->
+            <div class="glass-effect rounded-xl p-5 btn-hover cursor-pointer">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-4">
+                        <i class="fa fa-wifi text-xl text-primary"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-semibold text-white">网络安全模式</h2>
+                        <p class="text-light/80 text-xs">带网络支持的安全模式</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 命令提示符 -->
+            <div class="glass-effect rounded-xl p-5 btn-hover cursor-pointer">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-4">
+                        <i class="fa fa-terminal text-xl text-primary"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-semibold text-white">命令提示符</h2>
+                        <p class="text-light/80 text-xs">高级命令行操作</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 系统还原 -->
+            <div class="glass-effect rounded-xl p-5 btn-hover cursor-pointer">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center mr-4">
+                        <i class="fa fa-undo text-xl text-primary"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-semibold text-white">系统还原</h2>
+                        <p class="text-light/80 text-xs">恢复到之前的系统状态</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 返回按钮 -->
+        <div class="mt-8">
+            <button class="w-full glass-effect text-white py-3 rounded-lg btn-hover flex items-center justify-center" onclick="window.location.href='../syschoice.html'">
+                <i class="fa fa-arrow-left mr-2"></i>返回主菜单
+            </button>
+        </div>
+    </div>
+    
+    <!-- 装饰元素 -->
+    <div class="fixed top-10 left-10 w-20 h-20 rounded-full bg-primary/10 blur-xl animate-pulse-slow"></div>
+    <div class="fixed bottom-10 right-10 w-32 h-32 rounded-full bg-accent/10 blur-xl animate-pulse-slow" style="animation-delay: 1s;"></div>
+</body>
+</html>
