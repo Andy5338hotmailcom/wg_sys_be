@@ -1,4 +1,24 @@
 // ==============================
+// 全局窗口焦点、层级管理
+// ==============================
+let maxZIndex = 1000;
+let activeWindowDom = null;
+
+/**
+ * 将指定窗口置顶并设为激活焦点
+ * @param {HTMLElement} winDom 窗口DOM对象
+ */
+function bringWindowToTop(winDom) {
+    if (activeWindowDom) {
+        activeWindowDom.classList.remove("win-focus");
+    }
+    maxZIndex++;
+    winDom.style.zIndex = maxZIndex;
+    winDom.classList.add("win-focus");
+    activeWindowDom = winDom;
+}
+
+// ==============================
 // 应用列表
 // ==============================
 const DEFAULT_APPS = [
@@ -75,6 +95,7 @@ function renderTaskbarApps() {
         item.innerHTML = `<img src="${app.icon}">`;
         item.onclick = () => {
             win.style.display = win.style.display === "none" ? "block" : "none";
+            if(win.style.display === "block") bringWindowToTop(win);
         };
         taskApps.appendChild(item);
     });
@@ -131,7 +152,7 @@ function createContextMenu() {
     menu.id = "customContextMenu";
     menu.style.cssText = `
         position: fixed;
-        width: 160px;
+        width: 180px;
         background: #222;
         color: white;
         border-radius: 10px;
@@ -140,12 +161,30 @@ function createContextMenu() {
         z-index: 99999;
         display: none;
     `;
-    const items = [
+    document.body.appendChild(menu);
+}
+
+function showContextMenu(x, y) {
+    const menu = document.getElementById("customContextMenu");
+    if (!menu || !currentRightClickApp) return;
+    menu.innerHTML = "";
+
+    const fixedStartList = JSON.parse(localStorage.getItem("fixedApps"));
+    const desktopList = JSON.parse(localStorage.getItem("desktopIcons"));
+    const isFixedStart = fixedStartList.includes(currentRightClickApp.id);
+    const isFixedDesktop = desktopList.includes(currentRightClickApp.id);
+
+    const menuItems = [
         { text: "打开", action: "open" },
-        { text: "固定到开始", action: "fix" },
-        { text: "取消固定", action: "unfix" }
+        isFixedStart
+            ? { text: "从“开始”取消固定", action: "unfixStart" }
+            : { text: "固定到开始", action: "fixStart" },
+        isFixedDesktop
+            ? { text: "从桌面取消固定", action: "unfixDesktop" }
+            : { text: "固定到桌面", action: "fixDesktop" }
     ];
-    items.forEach(it => {
+
+    menuItems.forEach(it => {
         const div = document.createElement("div");
         div.innerText = it.text;
         div.style.padding = "8px 14px";
@@ -153,8 +192,11 @@ function createContextMenu() {
         div.style.fontSize = "14px";
         div.onclick = () => {
             if (it.action === "open" && currentRightClickApp) openApp(currentRightClickApp);
-            if (it.action === "fix" && currentRightClickApp) toggleFixed(currentRightClickApp.id, true);
-            if (it.action === "unfix" && currentRightClickApp) toggleFixed(currentRightClickApp.id, false);
+            if (it.action === "fixStart" && currentRightClickApp) toggleFixed(currentRightClickApp.id, true);
+            if (it.action === "unfixStart" && currentRightClickApp) toggleFixed(currentRightClickApp.id, false);
+            if (it.action === "fixDesktop" && currentRightClickApp) toggleDesktopPin(currentRightClickApp.id, true);
+            if (it.action === "unfixDesktop" && currentRightClickApp) toggleDesktopPin(currentRightClickApp.id, false);
+
             hideContextMenu();
             const menu = document.getElementById("startMenu");
             if (menu) menu.style.display = "none";
@@ -163,14 +205,16 @@ function createContextMenu() {
         div.onmouseout = () => div.style.background = "transparent";
         menu.appendChild(div);
     });
-    document.body.appendChild(menu);
-}
 
-function showContextMenu(x, y) {
-    const menu = document.getElementById("customContextMenu");
-    if (!menu) return;
-    menu.style.left = x + "px";
-    menu.style.top = y + "px";
+    // 边界避让，防止菜单超出屏幕
+    let posX = x;
+    let posY = y;
+    const rect = menu.getBoundingClientRect();
+    if (posX + rect.width > window.innerWidth) posX = window.innerWidth - rect.width - 10;
+    if (posY + rect.height > window.innerHeight) posY = window.innerHeight - rect.height - 10;
+
+    menu.style.left = posX + "px";
+    menu.style.top = posY + "px";
     menu.style.display = "block";
 }
 
@@ -179,6 +223,7 @@ function hideContextMenu() {
     if (menu) menu.style.display = "none";
 }
 
+// 固定/取消固定【开始菜单】原有函数
 function toggleFixed(appId, isFix) {
     let fixed = JSON.parse(localStorage.getItem("fixedApps"));
     if (isFix) {
@@ -188,6 +233,18 @@ function toggleFixed(appId, isFix) {
     }
     localStorage.setItem("fixedApps", JSON.stringify(fixed));
     renderStartMenu();
+}
+
+// 固定/取消固定【桌面】新增镜像函数
+function toggleDesktopPin(appId, isFix) {
+    let list = JSON.parse(localStorage.getItem("desktopIcons"));
+    if (isFix) {
+        if (!list.includes(appId)) list.push(appId);
+    } else {
+        list = list.filter(id => id !== appId);
+    }
+    localStorage.setItem("desktopIcons", JSON.stringify(list));
+    renderDesktopIcons();
 }
 
 // ==============================
@@ -208,7 +265,7 @@ function bindSearch() {
 }
 
 // ==============================
-// 打开应用
+// 打开应用（已修复iframe内部点击无法置顶问题）
 // ==============================
 function openApp(app) {
     const container = document.getElementById("window-container");
@@ -217,6 +274,7 @@ function openApp(app) {
     const exists = document.querySelector(`.app-window[data-id="${app.id}"]`);
     if (exists) {
         exists.style.display = "block";
+        bringWindowToTop(exists);
         renderTaskbarApps();
         return;
     }
@@ -243,6 +301,19 @@ function openApp(app) {
     makeWindowDraggable(win);
     bindWindowActions(win);
     renderTaskbarApps();
+    bringWindowToTop(win);
+
+    // 点击窗口外层（标题栏、边框）置顶
+    win.addEventListener("mousedown", () => {
+        bringWindowToTop(win);
+    })
+    // iframe 加载完成后，监听内部点击实现置顶
+    const iframe = win.querySelector("iframe");
+    iframe.addEventListener("load", ()=>{
+        iframe.contentWindow.addEventListener("mousedown", ()=>{
+            bringWindowToTop(win);
+        })
+    })
 }
 
 // ==============================
@@ -278,12 +349,34 @@ function bindWindowActions(win) {
     const maxBtn = win.querySelector(".maximize");
     const closeBtn = win.querySelector(".close");
 
+    let oldWinStyle = {};
+
     if (minBtn) minBtn.onclick = () => {
         win.style.display = "none";
         renderTaskbarApps();
     };
     if (maxBtn) maxBtn.onclick = () => {
         win.classList.toggle("maximized");
+        bringWindowToTop(win);
+        if(win.classList.contains("maximized")){
+            oldWinStyle = {
+                width: win.style.width,
+                height: win.style.height,
+                left: win.style.left,
+                top: win.style.top
+            };
+            const taskbar = document.querySelector(".taskbar");
+            const taskHeight = taskbar.offsetHeight;
+            win.style.width = "100vw";
+            win.style.height = `calc(100vh - ${taskHeight}px)`;
+            win.style.left = "0";
+            win.style.top = "0";
+        }else{
+            win.style.width = oldWinStyle.width;
+            win.style.height = oldWinStyle.height;
+            win.style.left = oldWinStyle.left;
+            win.style.top = oldWinStyle.top;
+        }
     };
     if (closeBtn) closeBtn.onclick = () => {
         win.remove();
@@ -328,14 +421,15 @@ function updateTime() {
 }
 
 // ==============================
-// 关机 / 重启 / 注销
+// 关机 / 重启 / 注销 / 刷新桌面
 // ==============================
 function shutdown() { location.href = "shutdown.html"; }
 function restart() { location.href = "restart.html"; }
 function logout() { location.href = "logout.html"; }
+function desktopreflash() { location.href = "desktop.html"; }
 
 // ==============================
-// ✅ ✅ ✅ 全部放进 onload，彻底解决报错！
+// 页面加载入口
 // ==============================
 window.onload = () => {
     createContextMenu();
@@ -344,7 +438,17 @@ window.onload = () => {
     bindSearch();
     enableWindowResize();
 
-    // 显示桌面
+    const desktopBg = document.querySelector(".desktop-bg");
+    if(desktopBg){
+        desktopBg.addEventListener("mousedown", (e) => {
+            if (e.target.closest(".app-window")) return;
+            if (activeWindowDom) {
+                activeWindowDom.classList.remove("win-focus");
+                activeWindowDom = null;
+            }
+        })
+    }
+
     const showDesktop = document.querySelector(".show-desktop");
     if (showDesktop) {
         showDesktop.onclick = () => {
@@ -356,7 +460,6 @@ window.onload = () => {
         };
     }
 
-    // 开始按钮
     const startBtn = document.querySelector(".start-btn");
     if (startBtn) {
         startBtn.onclick = () => {
@@ -368,10 +471,8 @@ window.onload = () => {
         };
     }
 
-    // 全局点击隐藏菜单
     document.onclick = hideContextMenu;
 
-    // 时钟
     updateTime();
     setInterval(updateTime, 1000);
 };
