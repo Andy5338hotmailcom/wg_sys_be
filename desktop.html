@@ -2,53 +2,12 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wildgoose OS</title>
-    <!-- 引入CSS -->
-    <link rel="stylesheet" href="desktop.css">
-    <script src="desktop.js"></script>
 </head>
 <body>
-
-<!-- ======================== -->
-<!-- 1. 桌面图标区域 -->
-<!-- ======================== -->
-<div id="desktop-icons"></div>
-
-<!-- ======================== -->
-<!-- 2. 任务栏 -->
-<!-- ======================== -->
-<div class="taskbar">
-    <button class="start-btn">开始</button>
-    <div class="task-apps"></div>
-    <div class="task-right">
-        <div class="show-desktop">显示桌面</div>
-        <div class="time" id="time"></div>
-    </div>
-</div>
-
-<!-- ======================== -->
-<!-- 3. 开始菜单 -->
-<!-- ======================== -->
-<div class="start-menu" id="startMenu">
-    <div class="search-box">
-        <input type="text" id="appSearch" placeholder="搜索应用">
-    </div>
-    <div class="fixed-apps" id="fixedApps"></div>
-    <div class="all-apps" id="allApps"></div>
-
-    <!-- 电源按钮区：关机 + 重启 + 注销 ✅ -->
-    <div class="power-row">
-        <button class="power-btn restart" onclick="restart()">重启</button>
-        <button class="power-btn shutdown" onclick="shutdown()">关机</button>
-        <button class="power-btn logout" onclick="logout()" style="background:#666; border:1px solid #888;">注销</button>
-    </div>
-</div>
-
-<!-- ======================== -->
-<!-- 4. 窗口容器 -->
-<!-- ======================== -->
-<div id="window-container"></div>
-
+<script>
+let t=localStorage.getItem("WG_color");
+if(!t){t="w";localStorage.setItem("WG_color","w");}
+window.location.href=t==="w"?"whitedesktop.html":"blackdesktop.html";
+</script>
 </body>
 </html>
