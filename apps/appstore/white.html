@@ -103,11 +103,12 @@
             cursor: pointer;
             margin-top: auto;
         }
-
+        .open-btn {
+            background: #28a745;
+        }
         .uninstall-btn {
             background: #ff4a66;
         }
-
         .installed-label {
             font-size: 12px;
             color: #4caf50;
@@ -124,6 +125,7 @@
         <div class="tabs">
             <div class="tab active" onclick="switchTab('store')">应用商店</div>
             <div class="tab" onclick="switchTab('manage')">管理应用</div>
+            <div class="tab" onclick="switchTab('wgapp')">安装WGAPP</div>
         </div>
 
         <div class="app-grid" id="app-container"></div>
@@ -178,7 +180,7 @@
             local.push(app);
             saveLocalApps(local);
             render();
-            alert("✅ 安装成功！重启桌面生效");
+            alert("✅ 安装成功！");
         }
 
         // ==============================
@@ -190,7 +192,18 @@
             local = local.filter(i => i.id !== id);
             saveLocalApps(local);
             render();
-            alert("✅ 卸载成功！重启桌面生效");
+            alert("✅ 卸载成功！");
+        }
+
+        // ==============================
+        // 【通用】打开应用（postMessage）
+        // ==============================
+        function openAppFromStore(appId) {
+            console.log("准备打开应用：", appId);
+            parent.postMessage({
+                action: "openApp",
+                appId: appId
+            }, "*");
         }
 
         // ==============================
@@ -204,7 +217,14 @@
 
             let list = [];
             if (currentTab === "store") list = STORE_APPS;
-            else list = local;
+            else if (currentTab === "manage") list = local;
+            else if (currentTab === "wgapp") {
+                openAppFromStore("appinstall");
+                currentTab = "store";
+                document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+                document.querySelectorAll(".tab")[0].classList.add("active");
+                return;
+            }
 
             // 搜索过滤
             list = list.filter(a => a.name.toLowerCase().includes(keyword) || a.id.includes(keyword));
@@ -214,15 +234,26 @@
                 const card = document.createElement("div");
                 card.className = "app-card";
 
+                let btnHtml = "";
+                if (installed) {
+                    if(currentTab === "manage"){
+                        btnHtml = `
+                            <button class="install-btn open-btn" onclick="openAppFromStore('${app.id}')">打开</button>
+                            <button class="install-btn uninstall-btn" onclick="uninstallApp('${app.id}')">卸载</button>
+                        `;
+                    }else{
+                        btnHtml = `<button class="install-btn open-btn" onclick="openAppFromStore('${app.id}')">打开</button>`;
+                    }
+                } else {
+                    btnHtml = `<button class="install-btn" onclick="installApp('${app.id}')">安装</button>`;
+                }
+
                 card.innerHTML = `
                     <img src="${app.icon}" class="app-icon">
                     <div class="app-name">${app.name}</div>
                     <div class="app-category">${app.category || "未分类"}</div>
                     ${installed ? '<span class="installed-label">已安装</span>' : ''}
-                    <button class="install-btn ${installed ? 'uninstall-btn' : ''}" 
-                        onclick="${installed ? `uninstallApp('${app.id}')` : `installApp('${app.id}')`}">
-                        ${installed ? "卸载" : "安装"}
-                    </button>
+                    ${btnHtml}
                 `;
                 container.appendChild(card);
             });
@@ -234,7 +265,9 @@
         function switchTab(tab) {
             currentTab = tab;
             document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-            document.querySelectorAll(".tab")[tab === "store" ? 0 : 1].classList.add("active");
+            if(tab === "store") document.querySelectorAll(".tab")[0].classList.add("active");
+            if(tab === "manage") document.querySelectorAll(".tab")[1].classList.add("active");
+            if(tab === "wgapp") document.querySelectorAll(".tab")[2].classList.add("active");
             render();
         }
 

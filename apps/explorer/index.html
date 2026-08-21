@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>此电脑 - Wildgoose OS</title>
+    <link rel="stylesheet" href="css.css">
+</head>
+<body>
+    <div class="explorer-window">
+        <div class="toolbar">
+            <button onclick="goBack()">返回</button>
+            <button onclick="refresh()">刷新</button>
+            <button onclick="deleteSelected()">删除</button>
+        </div>
+        <div class="path-bar" id="path-bar">C:/Users/Administrator/Desktop</div>
+        <div class="file-list" id="file-list"></div>
+    </div>
+
+    <script src="js.js"></script>
+    <script>
+        let currentPath = WGFS.PATHS.DESKTOP;
+
+        function loadDir(path) {
+            currentPath = path;
+            document.getElementById("path-bar").innerText = path;
+            const list = document.getElementById("file-list");
+            list.innerHTML = "";
+
+            const files = WGFS.getDir(path);
+            files.forEach(f => {
+                const item = document.createElement("div");
+                item.className = "file-item";
+                item.innerText = f.name;
+                list.appendChild(item);
+            });
+        }
+
+        function refresh() {
+            loadDir(currentPath);
+        }
+
+        function goBack() {
+            const parts = currentPath.split("/").slice(0, -1);
+            const backPath = parts.join("/") || "C:/";
+            if (WGFS.isProtected(backPath) || backPath) {
+                loadDir(backPath);
+            }
+        }
+
+        function deleteSelected() {
+            const del = confirm("确定删除？保护文件无法删除");
+            if (del) {
+                WGFS.delete(currentPath);
+                refresh();
+                renderDesktopIcons();
+            }
+        }
+
+        window.onload = () => loadDir(currentPath);
+    </script>
+</body>
+</html>

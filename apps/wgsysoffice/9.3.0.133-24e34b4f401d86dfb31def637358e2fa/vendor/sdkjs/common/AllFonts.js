@@ -1,4 +1,4 @@
-window["__all_fonts_js_version__"] = 2;
+﻿window["__all_fonts_js_version__"] = 2;
 
 window["__fonts_files"] = [
 "000",

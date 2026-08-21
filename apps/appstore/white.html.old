@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>软件商店</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            background: #ffffff;
+            color: #111;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* 搜索栏 */
+        .search-box {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+            background: #f5f7fa;
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 20px;
+            outline: none;
+        }
+
+        /* 选项卡 */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            background: #f5f7fa;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .tab.active {
+            background: #5a67ff;
+            color: #fff;
+        }
+
+        /* 应用列表网格 */
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+        }
+
+        /* 应用卡片 */
+        .app-card {
+            background: #f9fafb;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .app-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .app-name {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .app-category {
+            font-size: 12px;
+            color: #555;
+            background: #eef1f5;
+            padding: 3px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        /* 按钮 */
+        .install-btn {
+            padding: 8px;
+            border-radius: 8px;
+            border: none;
+            background: #5a67ff;
+            color: white;
+            cursor: pointer;
+            margin-top: auto;
+        }
+
+        .open-btn {
+            background: #28a745;
+        }
+
+        .uninstall-btn {
+            background: #ff4a66;
+        }
+
+        .installed-label {
+            font-size: 12px;
+            color: #4caf50;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>📱 软件商店</h2>
+        <br>
+        <input type="text" class="search-box" id="search" placeholder="搜索应用..." oninput="searchApp()">
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('store')">应用商店</div>
+            <div class="tab" onclick="switchTab('manage')">管理应用</div>
+        </div>
+
+        <div class="app-grid" id="app-container"></div>
+    </div>
+
+    <script>
+        // ==============================
+        // 【商店应用库】格式和 app_list 完全一致
+        // ==============================
+        const STORE_APPS = [
+            { id: "win12web", name: "Windows 12 网页版", icon: "ico/win12web.png", path: "https://win12-online.github.io/win12/boot.html", category: "开发者：tjy-github 类别：模拟" },
+            { id: "winxpweb", name: "Windows xp 网页版", icon: "ico/winxpweb.png", path: "https://win32.run/", category: "开发者：win32.run 类别：模拟" },
+            { id: "wildgoose", name: "Wildgoose 沙盒", icon: "icon.png", path: "index.html", category: "开发者：Wildgoose 类别：模拟" },
+            { id: "wgsysoffice", name: "Wildgoose Office", icon: "ico/wgsysoffice.png", path: "apps/wgsysoffice/office.html", category: "开发者：Wildgoose 类别：办公 " },
+            { id: "src", name: "学生点名系统", icon: "ico/src.ico", path: "apps/src/index.html", category: "开发者：Wildgoose 类别：教育 " }
+        ];
+
+        let currentTab = "store";
+
+        // ==============================
+        // 读取本地已安装应用
+        // ==============================
+        function getLocalApps() {
+            try {
+                return JSON.parse(localStorage.getItem("app_list")) || [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        // ==============================
+        // 保存到本地
+        // ==============================
+        function saveLocalApps(list) {
+            localStorage.setItem("app_list", JSON.stringify(list));
+        }
+
+        // ==============================
+        // 安装应用
+        // ==============================
+        function installApp(id) {
+            const local = getLocalApps();
+            const app = STORE_APPS.find(a => a.id === id);
+            if (!app) return;
+
+            const exists = local.some(i => i.id === id);
+            if (exists) {
+                alert("已安装！");
+                return;
+            }
+
+            local.push(app);
+            saveLocalApps(local);
+            render();
+            alert("✅ 安装成功！");
+        }
+
+        // ==============================
+        // 卸载应用
+        // ==============================
+        function uninstallApp(id) {
+            if (!confirm("确定卸载？")) return;
+            let local = getLocalApps();
+            local = local.filter(i => i.id !== id);
+            saveLocalApps(local);
+            render();
+            alert("✅ 卸载成功！");
+        }
+
+        // ==============================
+        // 【修复】postMessage 安全通信，兼容 file 本地打开
+        // ==============================
+        function openAppFromStore(appId) {
+            console.log("准备打开应用：", appId);
+            // 向父窗口发送消息
+            parent.postMessage({
+                action: "openApp",
+                appId: appId
+            }, "*");
+        }
+
+        // ==============================
+        // 渲染页面
+        // ==============================
+        function render() {
+            const container = document.getElementById("app-container");
+            container.innerHTML = "";
+            const local = getLocalApps();
+            const keyword = document.getElementById("search").value.toLowerCase();
+
+            let list = [];
+            if (currentTab === "store") list = STORE_APPS;
+            else list = local;
+
+            // 搜索过滤
+            list = list.filter(a => a.name.toLowerCase().includes(keyword) || a.id.includes(keyword));
+
+            list.forEach(app => {
+                const installed = local.some(i => i.id === app.id);
+                const card = document.createElement("div");
+                card.className = "app-card";
+
+                let btnHtml = "";
+                if (installed) {
+                    if(currentTab === "manage"){
+                        btnHtml = `
+                            <button class="install-btn open-btn" onclick="openAppFromStore('${app.id}')">打开</button>
+                            <button class="install-btn uninstall-btn" onclick="uninstallApp('${app.id}')">卸载</button>
+                        `;
+                    }else{
+                        btnHtml = `<button class="install-btn open-btn" onclick="openAppFromStore('${app.id}')">打开</button>`;
+                    }
+                } else {
+                    btnHtml = `<button class="install-btn" onclick="installApp('${app.id}')">安装</button>`;
+                }
+
+                card.innerHTML = `
+                    <img src="${app.icon}" class="app-icon">
+                    <div class="app-name">${app.name}</div>
+                    <div class="app-category">${app.category || "未分类"}</div>
+                    ${installed ? '<span class="installed-label">已安装</span>' : ''}
+                    ${btnHtml}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // ==============================
+        // 切换选项卡
+        // ==============================
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+            document.querySelectorAll(".tab")[tab === "store" ? 0 : 1].classList.add("active");
+            render();
+        }
+
+        // ==============================
+        // 搜索
+        // ==============================
+        function searchApp() { render(); }
+
+        // 初始化
+        window.onload = render;
+    </script>
+</body>
+</html>
