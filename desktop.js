@@ -476,3 +476,76 @@ window.onload = () => {
     updateTime();
     setInterval(updateTime, 1000);
 };
+
+// ==============================
+// 【修复版】提供给iframe子页面调用：通过appId打开应用（实时读取已安装应用）
+// ==============================
+window.openAppById = function (appId) {
+    // ✅ 每次打开都重新合并默认+本地安装应用，获取最新列表
+    function getLocalApps() {
+        try {
+            const local = localStorage.getItem("app_list");
+            return local ? JSON.parse(local) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+    function mergeAppList() {
+        const localApps = getLocalApps();
+        const result = [...DEFAULT_APPS];
+        for (const app of localApps) {
+            if (!app.id) continue;
+            const exists = result.some(item => item.id === app.id);
+            if (!exists) {
+                result.push(app);
+            }
+        }
+        return result;
+    }
+    const latestAppList = mergeAppList();
+    const app = latestAppList.find(item => item.id === appId);
+    if (!app) {
+        console.warn("不存在该应用id：", appId);
+        alert("系统未找到该应用，请确认已安装！");
+        return;
+    }
+    openApp(app);
+};
+
+// ==============================
+// 【新增】postMessage 接收子页面打开应用请求（解决file跨域拦截）
+// ==============================
+window.addEventListener("message", function (e) {
+    const data = e.data;
+    if (data && data.action === "openApp" && data.appId) {
+        // 每次实时合并最新应用列表
+        function getLocalApps() {
+            try {
+                const local = localStorage.getItem("app_list");
+                return local ? JSON.parse(local) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+        function mergeAppList() {
+            const localApps = getLocalApps();
+            const result = [...DEFAULT_APPS];
+            for (const app of localApps) {
+                if (!app.id) continue;
+                const exists = result.some(item => item.id === app.id);
+                if (!exists) {
+                    result.push(app);
+                }
+            }
+            return result;
+        }
+        const latestAppList = mergeAppList();
+        const app = latestAppList.find(item => item.id === data.appId);
+        if (!app) {
+            console.warn("不存在该应用id：", data.appId);
+            alert("系统未找到该应用，请确认已安装！");
+            return;
+        }
+        openApp(app);
+    }
+});
