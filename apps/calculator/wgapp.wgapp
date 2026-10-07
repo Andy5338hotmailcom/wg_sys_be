@@ -1,0 +1,9 @@
+{
+  "id": "wg_calculator",
+  "name": "计算器",
+  "icon": "ico/calculator.svg",
+  "path": "apps/calculator/index.html",
+  "color": "#C7BEE6",
+  "category": "工具",
+  "developer": "Wildgoose"
+}
