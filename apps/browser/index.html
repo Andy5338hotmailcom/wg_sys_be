@@ -96,47 +96,84 @@ button{
 #frameWrap{
     flex:1;
     width:100%;
+    position:relative;
 }
 #webview{
     width:100%;
     height:100%;
     border:none;
 }
+.newtab{
+    position:absolute;
+    inset:0;
+    background:var(--wg-bg,#fff);
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:24px;
+}
+.newtab-search{
+    width: min(600px,90%);
+}
+.newtab-search input{
+    width:100%;
+    padding:14px 18px;
+    border-radius:999px;
+    border:1px solid #ccc;
+    font-size:1rem;
+    background:var(--wg-input-bg,#fff);
+    color:inherit;
+}
 </style>
 </head>
 <body>
-<!-- 标签栏 -->
 <div class="tabbar" id="tabBar">
     <button class="tab-new" onclick="newTab()">+</button>
 </div>
 
-<!-- 导航工具栏 -->
 <div class="topbar">
     <button onclick="goBack()">←</button>
     <button onclick="goForward()">→</button>
     <button onclick="reload()">⟳</button>
     <button onclick="goHome()">🏠</button>
-    <input id="addr" placeholder="输入网址" onkeydown="if(event.key==='Enter')navigate()">
+    <input id="addr" placeholder="输入网址，按回车访问" onkeydown="if(event.key==='Enter')navigate()">
     <button onclick="navigate()">前往</button>
 </div>
 
 <div id="frameWrap">
     <iframe id="webview" src="about:blank"></iframe>
+    <div class="newtab" id="newTabPage">
+        <h2>Wildgoose 浏览器</h2>
+        <div class="newtab-search">
+            <input id="newTabInput" placeholder="搜索或输入网址" onkeydown="if(event.key==='Enter')navigateFromNewTab()">
+        </div>
+    </div>
 </div>
 
 <script>
 const iframe = document.getElementById("webview");
 const addrInput = document.getElementById("addr");
 const tabBar = document.getElementById("tabBar");
-const homeUrl = "./newtab.html";
+const newTabPage = document.getElementById("newTabPage");
+const newTabInput = document.getElementById("newTabInput");
 
-// 标签数据
 let tabs = [];
 let activeTabId = null;
 let tabIdCounter = 1;
+const NEWTAB_SIGN = "about:newtab";
 
-// 创建新标签
-function newTab(url = homeUrl) {
+function showNewTab() {
+    iframe.style.display = "none";
+    newTabPage.style.display = "flex";
+}
+function hideNewTab() {
+    iframe.style.display = "block";
+    newTabPage.style.display = "none";
+}
+
+// 创建标签
+function newTab(url = NEWTAB_SIGN) {
     const tid = tabIdCounter++;
     const tabData = {
         id: tid,
@@ -152,13 +189,10 @@ function newTab(url = homeUrl) {
     switchTab(tid);
 }
 
-// 渲染全部标签DOM
 function renderTabs(){
-    // 清空，保留新建按钮
     const newTabBtn = tabBar.querySelector(".tab-new");
     tabBar.innerHTML = "";
     tabBar.appendChild(newTabBtn);
-
     tabs.forEach(tab=>{
         const div = document.createElement("div");
         div.className = "tab" + (tab.id === activeTabId ? " active" : "");
@@ -173,76 +207,109 @@ function renderTabs(){
     })
 }
 
-// 切换标签
 function switchTab(tid){
     const tab = tabs.find(t=>t.id === tid);
     if(!tab) return;
     activeTabId = tid;
-    iframe.src = tab.url;
     addrInput.value = tab.url;
+    if(tab.url === NEWTAB_SIGN){
+        showNewTab();
+    }else{
+        hideNewTab();
+        iframe.src = tab.url;
+    }
     renderTabs();
 }
 
-// 关闭标签
 function closeTab(tid){
-    if(tabs.length <= 1) return; // 保留至少一个标签
+    if(tabs.length <= 1) return;
     const idx = tabs.findIndex(t=>t.id===tid);
     tabs.splice(idx,1);
     if(activeTabId === tid){
-        // 关闭当前标签，切换到前一个
         const newActive = tabs[Math.max(0, idx-1)];
         activeTabId = newActive.id;
         switchTab(activeTabId);
+    }else{
+        renderTabs();
     }
-    renderTabs();
 }
 
-// 导航（当前激活标签）
+// 由外层地址栏发起导航（唯一更新tab.url的入口）
 function navigate(){
     let url = addrInput.value.trim();
     if(!url) return;
-    if(!/^https?:\/\//.test(url)){
+    loadUrl(activeTabId, url);
+}
+function navigateFromNewTab(){
+    const url = newTabInput.value.trim();
+    if(!url) return;
+    loadUrl(activeTabId, url);
+    newTabInput.value = "";
+}
+
+function loadUrl(tid, rawUrl){
+    const tab = tabs.find(t=>t.id === tid);
+    if(!tab) return;
+    let url = rawUrl.trim();
+
+    // 判断输入是否为网址
+    const isUrl = /^(https?:\/\/)|(\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,})/.test(url);
+
+    if(url !== NEWTAB_SIGN && !isUrl){
+        // 不是网址，使用Bing搜索引擎
+        url = "https://www.bing.com/search?q=" + encodeURIComponent(rawUrl);
+    }else if(url !== NEWTAB_SIGN && !/^https?:\/\//.test(url)){
         url = "https://"+url;
     }
-    const tab = tabs.find(t=>t.id === activeTabId);
+
     tab.historyStack.splice(tab.historyIndex+1);
     tab.historyStack.push(url);
     tab.historyIndex = tab.historyStack.length -1;
     tab.url = url;
     tab.title = url;
-    iframe.src = url;
+    addrInput.value = url;
+    if(url === NEWTAB_SIGN){
+        showNewTab();
+    }else{
+        hideNewTab();
+        iframe.src = url;
+    }
     renderTabs();
 }
+
 function goBack(){
     const tab = tabs.find(t=>t.id === activeTabId);
-    if(tab.historyIndex>0){
-        tab.historyIndex--;
-        tab.url = tab.historyStack[tab.historyIndex];
-        iframe.src = tab.url;
-        addrInput.value = tab.url;
-        renderTabs();
-    }
+    if(!tab || tab.historyIndex <= 0) return;
+    tab.historyIndex--;
+    const url = tab.historyStack[tab.historyIndex];
+    tab.url = url;
+    addrInput.value = url;
+    if(url === NEWTAB_SIGN) showNewTab();
+    else {hideNewTab(); iframe.src = url;}
+    renderTabs();
 }
 function goForward(){
     const tab = tabs.find(t=>t.id === activeTabId);
-    if(tab.historyIndex < tab.historyStack.length-1){
-        tab.historyIndex++;
-        tab.url = tab.historyStack[tab.historyIndex];
-        iframe.src = tab.url;
-        addrInput.value = tab.url;
-        renderTabs();
-    }
+    if(!tab || tab.historyIndex >= tab.historyStack.length-1) return;
+    tab.historyIndex++;
+    const url = tab.historyStack[tab.historyIndex];
+    tab.url = url;
+    addrInput.value = url;
+    if(url === NEWTAB_SIGN) showNewTab();
+    else {hideNewTab(); iframe.src = url;}
+    renderTabs();
 }
 function reload(){
-    iframe.src = iframe.src;
+    const tab = tabs.find(t=>t.id === activeTabId);
+    if(!tab || tab.url === NEWTAB_SIGN) return;
+    iframe.src = tab.url;
 }
 function goHome(){
-    addrInput.value = homeUrl;
-    navigate();
+    loadUrl(activeTabId, NEWTAB_SIGN);
 }
 
-// 初始化默认标签
-newTab(homeUrl);
+// 初始化
+newTab(NEWTAB_SIGN);
 </script>
 </body>
 </html>
