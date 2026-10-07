@@ -1,159 +1,191 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Wildgoose Browser</title>
-<style>
-* {
-    box-sizing: border-box;
-    margin:0;
-    padding:0;
-    font-family: system-ui, -apple-system, sans-serif;
-}
-body{
-    background:#fff;
-    color:#111;
-    height:100vh;
-    display:flex;
-    flex-direction:column;
-    overflow:hidden;
-}
-/* 标签栏 */
-.tabbar{
-    display:flex;
-    gap:4px;
-    padding:4px 6px;
-    background:#eee;
-    overflow-x:auto;
-    align-items:center;
-}
-.tab{
-    display:flex;
-    align-items:center;
-    gap:6px;
-    padding:4px 10px;
-    border-radius:6px 6px 0 0;
-    background:#ddd;
-    min-width:120px;
-    max-width:180px;
-    cursor:pointer;
-}
-.tab.active{
-    background:#fff;
-}
-.tab-title{
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    flex:1;
-    font-size:0.85rem;
-}
-.tab-close{
-    width:18px;
-    height:18px;
-    border-radius:99px;
-    border:none;
-    background:#bbb;
-    color:#000;
-    cursor:pointer;
-    font-size:12px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-}
-.tab-new{
-    width:26px;
-    height:26px;
-    border:none;
-    background:#ddd;
-    border-radius:4px;
-    cursor:pointer;
-    font-size:18px;
-}
-/* 顶部导航栏 */
-.topbar{
-    display:flex;
-    gap:6px;
-    padding:6px 8px;
-    align-items:center;
-    border-bottom:1px solid #ddd;
-}
-.topbar button{
-    border:none;
-    border-radius:4px;
-    padding:4px 8px;
-    cursor:pointer;
-    background:#eee;
-}
-#addr{
-    flex:1;
-    padding:6px 10px;
-    border:1px solid #ccc;
-    border-radius:6px;
-}
-/* iframe容器 */
-#frameWrap{
-    flex:1;
-    width:100%;
-    position:relative;
-}
-#webview{
-    width:100%;
-    height:100%;
-    border:none;
-}
-/* 新标签页 */
-.newtab{
-    position:absolute;
-    inset:0;
-    background:#fff;
-    display:none;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:32px;
-}
-.newtab h1{
-    font-size:32px;
-    font-weight:normal;
-}
-.newtab-search{
-    width: min(600px,90%);
-}
-.newtab-search input{
-    width:100%;
-    padding:14px 18px;
-    border-radius:999px;
-    border:1px solid #ccc;
-    font-size:1rem;
-}
-</style>
+    <meta charset="UTF-8">
+    <title>Wildgoose Browser</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin:0;
+            padding:0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        body {
+            height:100vh;
+            display:flex;
+            flex-direction:column;
+            overflow:hidden;
+        }
+        /* 标签栏 */
+        #tabBar {
+            display:flex;
+            align-items:center;
+            background:#ddd;
+            padding:4px 4px 0;
+            gap:4px;
+        }
+        .tab {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            height: 32px;
+            padding: 0 8px;
+            background: #eee;
+            border-radius:4px 4px 0 0;
+            max-width: 180px;
+            gap:6px;
+            cursor:pointer;
+        }
+        .tab.active {
+            background:#fff;
+        }
+        .tab-title {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex:1;
+            font-size:13px;
+        }
+        .tab-close {
+            border:none;
+            background:transparent;
+            cursor:pointer;
+            width:20px;
+            height:20px;
+            border-radius:50%;
+            font-size:16px;
+            line-height:20px;
+        }
+        .tab-close:hover {
+            background:#ddd;
+        }
+        .tab-new {
+            width:32px;
+            height:32px;
+            border:none;
+            background:#eee;
+            border-radius:4px 4px 0 0;
+            cursor:pointer;
+            font-size:18px;
+        }
+        /* tooltip悬浮完整标题 */
+        .tab:hover::after {
+            content: attr(data-fulltitle);
+            position: absolute;
+            left: 4px;
+            top: 36px;
+            background: #222;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            font-size:12px;
+            z-index:999;
+            pointer-events:none;
+        }
+
+        /* 导航栏 */
+        .nav-bar {
+            display:flex;
+            align-items:center;
+            gap:6px;
+            padding:6px 8px;
+            background:#eee;
+        }
+        .nav-bar button {
+            width:28px;
+            height:28px;
+            border:none;
+            border-radius:6px;
+            cursor:pointer;
+            background:#f4f4f4;
+            transition: background 0.15s;
+        }
+        .nav-bar button:hover {
+            background:#dddddd;
+        }
+        /* 顶部地址输入框 */
+        #addr {
+            flex:1;
+            padding:7px 12px;
+            border:1px solid #cccccc;
+            border-radius:8px;
+            font-size:14px;
+            outline:none;
+            transition: 0.2s ease;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
+        }
+        #addr:focus {
+            border-color:#2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2), inset 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .nav-bar .btn-action {
+            padding:0 12px;
+            width:auto;
+            border-radius:8px;
+            background:#e5e5e5;
+        }
+        .nav-bar .btn-action:hover {
+            background:#d4d4d4;
+        }
+
+        /* iframe 内容区域 */
+        #webview {
+            flex:1;
+            width:100%;
+            border:none;
+        }
+
+        /* ========== 新建标签页 完全匹配截图样式 ========== */
+        #newTabPage {
+            flex:1;
+            display:none;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            background:#ffffff;
+            gap:32px;
+        }
+        #newTabPage h1 {
+            font-size:48px;
+            font-weight:normal;
+            color:#111;
+        }
+        #newTabInput {
+            width:65%;
+            padding:16px 22px;
+            border:1px solid #d1d1d1;
+            border-radius:999px; /* 超大圆角，胶囊形 */
+            font-size:18px;
+            outline:none;
+            transition:0.2s;
+        }
+        #newTabInput:focus {
+            border-color:#2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        }
+    </style>
 </head>
 <body>
-<div class="tabbar" id="tabBar">
-    <button class="tab-new" onclick="newTab()">+</button>
-</div>
-
-<div class="topbar">
-    <button onclick="goBack()">←</button>
-    <button onclick="goForward()">→</button>
-    <button onclick="reload()">⟳</button>
-    <button onclick="goHome()">🏠</button>
-    <input id="addr" placeholder="输入网址，按回车访问" onkeydown="if(event.key==='Enter')navigate()">
-    <button onclick="navigate()">前往</button>
-    <button onclick="newTab('wgbrowser:about')">关于</button>
-</div>
-
-<div id="frameWrap">
-    <iframe id="webview" src="about:blank"></iframe>
-    <div class="newtab" id="newTabPage">
-        <h1>Wildgoose 浏览器</h1>
-        <div class="newtab-search">
-            <input id="newTabInput" placeholder="搜索或输入网址" onkeydown="if(event.key==='Enter')navigateFromNewTab()">
-        </div>
+    <div id="tabBar">
+        <button class="tab-new" onclick="newTab()">+</button>
     </div>
-</div>
+    <div class="nav-bar">
+        <button onclick="goBack()">←</button>
+        <button onclick="goForward()">→</button>
+        <button onclick="reload()">⟳</button>
+        <button onclick="goHome()">🏠</button>
+        <input id="addr" placeholder="输入网址或者搜索词" onkeydown="if(event.key==='Enter')navigate()">
+        <button class="btn-action" onclick="navigate()">前往</button>
+        <button class="btn-action" onclick="newTab('wgbrowser:about')">关于</button>
+    </div>
+
+    <iframe id="webview"></iframe>
+
+    <div id="newTabPage">
+        <h1>Wildgoose 浏览器</h1>
+        <input id="newTabInput" placeholder="搜索或输入网址" onkeydown="if(event.key==='Enter')navigateFromNewTab()">
+    </div>
 
 <script>
 const iframe = document.getElementById("webview");
@@ -176,25 +208,32 @@ function hideNewTab() {
     newTabPage.style.display = "none";
 }
 
-// 创建标签【修复版本】
+// 更新标签显示标题
+function updateTabTitle(tid, titleText) {
+    const tab = tabs.find(t => t.id === tid);
+    if (!tab) return;
+    tab.titleText = titleText;
+    renderTabs();
+}
+
+// 创建标签
 function newTab(url = NEWTAB_SIGN) {
     const tid = tabIdCounter++;
     let iframeSrc = url;
     if(url === NEWTAB_SIGN) iframeSrc = "";
     const tabData = {
         id: tid,
-        title: url,
         url: url,
         iframeSrc: iframeSrc,
         historyStack: [],
-        historyIndex: -1
+        historyIndex: -1,
+        titleText: url
     };
     tabData.historyStack.push({url:url, iframeSrc:iframeSrc});
     tabData.historyIndex = 0;
     tabs.push(tabData);
     renderTabs();
     switchTab(tid);
-    // 重点修复：如果不是空白新标签，自动解析加载url
     if(url !== NEWTAB_SIGN) {
         loadUrl(tid, url);
     }
@@ -212,9 +251,10 @@ function renderTabs(){
             if(!e.target.classList.contains("tab-close")) switchTab(tab.id);
         };
         div.innerHTML = `
-            <span class="tab-title">${tab.url}</span>
+            <span class="tab-title">${tab.titleText}</span>
             <button class="tab-close" onclick="closeTab(${tab.id})">×</button>
         `;
+        div.setAttribute("data-fulltitle", tab.titleText);
         tabBar.insertBefore(div, newTabBtn);
     })
 }
@@ -227,9 +267,22 @@ function switchTab(tid){
     addrInput.value = tab.url;
     if(tab.url === NEWTAB_SIGN){
         showNewTab();
+        updateTabTitle(tid, "新建标签页");
     }else{
         hideNewTab();
         iframe.src = tab.iframeSrc;
+        iframe.onload = function() {
+            try {
+                const pageTitle = iframe.contentDocument.title;
+                if(pageTitle && pageTitle.trim() !== "") {
+                    updateTabTitle(tid, pageTitle);
+                } else {
+                    updateTabTitle(tid, tab.url);
+                }
+            } catch(e) {
+                updateTabTitle(tid, tab.url);
+            }
+        }
     }
     renderTabs();
 }
@@ -240,12 +293,12 @@ function closeTab(tid){
     const idx = tabs.findIndex(t=>t.id===tid);
     tabs.splice(idx,1);
     if(activeTabId === tid){
-        const newActive = tabs[Math.max(0, idx-1)];
+        const newIdx = Math.max(0, idx - 1);
+        const newActive = tabs[newIdx];
         activeTabId = newActive.id;
         switchTab(activeTabId);
-    }else{
-        renderTabs();
     }
+    renderTabs();
 }
 
 // 地址栏跳转
@@ -267,7 +320,7 @@ function loadUrl(tid, rawUrl){
     let displayUrl = rawUrl;
     let iframeSrc = rawUrl;
 
-    // 自定义协议优先解析
+    // 自定义协议解析
     if(rawUrl.startsWith("wgbrowser:")){
         const cmd = rawUrl.replace("wgbrowser:","").toLowerCase();
         if(cmd === "newtab"){
@@ -293,6 +346,7 @@ function loadUrl(tid, rawUrl){
         tab.iframeSrc = "";
         addrInput.value = tab.url;
         showNewTab();
+        updateTabTitle(tid, "新建标签页");
         renderTabs();
         return;
     }
@@ -307,11 +361,14 @@ function loadUrl(tid, rawUrl){
         addrInput.value = tab.url;
         hideNewTab();
         iframe.src = iframeSrc;
+        if(rawUrl === "wgbrowser:about") {
+            updateTabTitle(tid, "Wildgoose Browser - 关于");
+        }
         renderTabs();
         return;
     }
 
-    // 普通网址/搜索
+    // 普通网址 / Bing搜索
     const isUrl = /^(https?:\/\/)|(\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,})/.test(rawUrl);
     if(!isUrl){
         iframeSrc = "https://www.bing.com/search?q=" + encodeURIComponent(rawUrl);
@@ -334,25 +391,25 @@ function loadUrl(tid, rawUrl){
 function goBack(){
     const tab = tabs.find(t=>t.id === activeTabId);
     if(!tab || tab.historyIndex <= 0) return;
-    tab.historyIndex--;
+    tab.historyIndex --;
     const entry = tab.historyStack[tab.historyIndex];
     tab.url = entry.url;
     tab.iframeSrc = entry.iframeSrc;
     addrInput.value = tab.url;
-    if(tab.url === NEWTAB_SIGN) showNewTab();
-    else {hideNewTab(); iframe.src = tab.iframeSrc;}
+    hideNewTab();
+    iframe.src = tab.iframeSrc;
     renderTabs();
 }
 function goForward(){
     const tab = tabs.find(t=>t.id === activeTabId);
     if(!tab || tab.historyIndex >= tab.historyStack.length-1) return;
-    tab.historyIndex++;
+    tab.historyIndex ++;
     const entry = tab.historyStack[tab.historyIndex];
     tab.url = entry.url;
     tab.iframeSrc = entry.iframeSrc;
     addrInput.value = tab.url;
-    if(tab.url === NEWTAB_SIGN) showNewTab();
-    else {hideNewTab(); iframe.src = tab.iframeSrc;}
+    hideNewTab();
+    iframe.src = iframeSrc;
     renderTabs();
 }
 function reload(){
