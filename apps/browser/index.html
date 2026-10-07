@@ -173,17 +173,20 @@ function hideNewTab() {
     newTabPage.style.display = "none";
 }
 
-// 创建标签
+// 创建标签：tab.url=原始地址，tab.iframeSrc=iframe真实加载地址
 function newTab(url = NEWTAB_SIGN) {
     const tid = tabIdCounter++;
+    let iframeSrc = url;
+    if(url === NEWTAB_SIGN) iframeSrc = "";
     const tabData = {
         id: tid,
-        title: "新标签页",
-        url: url,
+        title: url,
+        url: url, // 原始输入地址，地址栏永远显示这个
+        iframeSrc: iframeSrc, // iframe真实加载路径
         historyStack: [],
         historyIndex: -1
     };
-    tabData.historyStack.push(url);
+    tabData.historyStack.push({url:url, iframeSrc:iframeSrc});
     tabData.historyIndex = 0;
     tabs.push(tabData);
     renderTabs();
@@ -201,7 +204,7 @@ function renderTabs(){
             if(!e.target.classList.contains("tab-close")) switchTab(tab.id);
         };
         div.innerHTML = `
-            <span class="tab-title">${tab.title}</span>
+            <span class="tab-title">${tab.url}</span>
             <button class="tab-close" onclick="closeTab(${tab.id})">×</button>
         `;
         tabBar.insertBefore(div, newTabBtn);
@@ -212,12 +215,12 @@ function switchTab(tid){
     const tab = tabs.find(t=>t.id === tid);
     if(!tab) return;
     activeTabId = tid;
-    addrInput.value = tab.url;
+    addrInput.value = tab.url; // 地址栏展示原始自定义协议
     if(tab.url === NEWTAB_SIGN){
         showNewTab();
     }else{
         hideNewTab();
-        iframe.src = tab.url;
+        iframe.src = tab.iframeSrc;
     }
     renderTabs();
 }
@@ -235,87 +238,88 @@ function closeTab(tid){
     }
 }
 
-// 由外层地址栏发起导航（唯一更新tab.url的入口）
+// 由外层地址栏发起导航
 function navigate(){
-    let url = addrInput.value.trim();
-    if(!url) return;
-    loadUrl(activeTabId, url);
+    let rawUrl = addrInput.value.trim();
+    if(!rawUrl) return;
+    loadUrl(activeTabId, rawUrl);
 }
 function navigateFromNewTab(){
-    const url = newTabInput.value.trim();
-    if(!url) return;
-    loadUrl(activeTabId, url);
+    const rawUrl = newTabInput.value.trim();
+    if(!rawUrl) return;
+    loadUrl(activeTabId, rawUrl);
     newTabInput.value = "";
 }
 
 function loadUrl(tid, rawUrl){
     const tab = tabs.find(t=>t.id === tid);
     if(!tab) return;
-    let url = rawUrl.trim();
+    let displayUrl = rawUrl;
+    let iframeSrc = rawUrl;
 
     // ========== 自定义协议解析【优先执行】 ==========
-    if(url.startsWith("wgbrowser:")){
-        const cmd = url.replace("wgbrowser:","").toLowerCase();
+    if(rawUrl.startsWith("wgbrowser:")){
+        const cmd = rawUrl.replace("wgbrowser:","").toLowerCase();
         if(cmd === "newtab"){
             // wgbrowser:newtab → 新建标签，直接返回
             newTab(NEWTAB_SIGN);
             return;
         }
         if(cmd === "about"){
-            url = "./about.html";
+            displayUrl = "wgbrowser:about";
+            iframeSrc = "./about.html";
         }
     }
-    if(url.startsWith("wgbrowserfiles:")){
-        // wgbrowserfiles:xxx.html → 同目录文件
-        const filePath = url.replace("wgbrowserfiles:","");
-        url = "./" + filePath;
+    if(rawUrl.startsWith("wgbrowserfiles:")){
+        displayUrl = rawUrl;
+        const filePath = rawUrl.replace("wgbrowserfiles:","");
+        iframeSrc = "./" + filePath;
     }
     // ====================================
 
-    if(url === NEWTAB_SIGN){
+    if(displayUrl === NEWTAB_SIGN){
         tab.historyStack.splice(tab.historyIndex+1);
-        tab.historyStack.push(url);
+        tab.historyStack.push({url:displayUrl, iframeSrc:""});
         tab.historyIndex = tab.historyStack.length -1;
-        tab.url = url;
-        tab.title = url;
-        addrInput.value = url;
+        tab.url = displayUrl;
+        tab.iframeSrc = "";
+        addrInput.value = tab.url;
         showNewTab();
         renderTabs();
         return;
     }
 
-    // 【关键】如果是我们的自定义协议前缀，跳过搜索判断
+    // 自定义协议，跳过搜索
     if(rawUrl.startsWith("wgbrowser:") || rawUrl.startsWith("wgbrowserfiles:")){
         tab.historyStack.splice(tab.historyIndex+1);
-        tab.historyStack.push(url);
+        tab.historyStack.push({url:displayUrl, iframeSrc:iframeSrc});
         tab.historyIndex = tab.historyStack.length -1;
-        tab.url = url;
-        tab.title = url;
-        addrInput.value = url;
+        tab.url = displayUrl;
+        tab.iframeSrc = iframeSrc;
+        addrInput.value = tab.url;
         hideNewTab();
-        iframe.src = url;
+        iframe.src = iframeSrc;
         renderTabs();
         return;
     }
 
-    // 判断输入是否为网址
-    const isUrl = /^(https?:\/\/)|(\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,})/.test(url);
-
+    // 普通网址/搜索分支
+    const isUrl = /^(https?:\/\/)|(\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,})/.test(rawUrl);
     if(!isUrl){
-        // 不是网址，使用Bing搜索引擎
-        url = "https://www.bing.com/search?q=" + encodeURIComponent(rawUrl);
-    }else if(!/^https?:\/\//.test(url)){
-        url = "https://"+url;
+        iframeSrc = "https://www.bing.com/search?q=" + encodeURIComponent(rawUrl);
+    }else if(!/^https?:\/\//.test(rawUrl)){
+        iframeSrc = "https://"+rawUrl;
     }
+    displayUrl = rawUrl;
 
     tab.historyStack.splice(tab.historyIndex+1);
-    tab.historyStack.push(url);
+    tab.historyStack.push({url:displayUrl, iframeSrc:iframeSrc});
     tab.historyIndex = tab.historyStack.length -1;
-    tab.url = url;
-    tab.title = url;
-    addrInput.value = url;
+    tab.url = displayUrl;
+    tab.iframeSrc = iframeSrc;
+    addrInput.value = tab.url;
     hideNewTab();
-    iframe.src = url;
+    iframe.src = iframeSrc;
     renderTabs();
 }
 
@@ -323,28 +327,30 @@ function goBack(){
     const tab = tabs.find(t=>t.id === activeTabId);
     if(!tab || tab.historyIndex <= 0) return;
     tab.historyIndex--;
-    const url = tab.historyStack[tab.historyIndex];
-    tab.url = url;
-    addrInput.value = url;
-    if(url === NEWTAB_SIGN) showNewTab();
-    else {hideNewTab(); iframe.src = url;}
+    const entry = tab.historyStack[tab.historyIndex];
+    tab.url = entry.url;
+    tab.iframeSrc = entry.iframeSrc;
+    addrInput.value = tab.url;
+    if(tab.url === NEWTAB_SIGN) showNewTab();
+    else {hideNewTab(); iframe.src = tab.iframeSrc;}
     renderTabs();
 }
 function goForward(){
     const tab = tabs.find(t=>t.id === activeTabId);
     if(!tab || tab.historyIndex >= tab.historyStack.length-1) return;
     tab.historyIndex++;
-    const url = tab.historyStack[tab.historyIndex];
-    tab.url = url;
-    addrInput.value = url;
-    if(url === NEWTAB_SIGN) showNewTab();
-    else {hideNewTab(); iframe.src = url;}
+    const entry = tab.historyStack[tab.historyIndex];
+    tab.url = entry.url;
+    tab.iframeSrc = entry.iframeSrc;
+    addrInput.value = tab.url;
+    if(tab.url === NEWTAB_SIGN) showNewTab();
+    else {hideNewTab(); iframe.src = tab.iframeSrc;}
     renderTabs();
 }
 function reload(){
     const tab = tabs.find(t=>t.id === activeTabId);
     if(!tab || tab.url === NEWTAB_SIGN) return;
-    iframe.src = tab.url;
+    iframe.src = tab.iframeSrc;
 }
 function goHome(){
     loadUrl(activeTabId, NEWTAB_SIGN);
