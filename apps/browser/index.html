@@ -112,6 +112,7 @@ button{
     align-items:center;
     justify-content:center;
     gap:24px;
+    padding:20px;
 }
 .newtab-search{
     width: min(600px,90%);
@@ -161,7 +162,7 @@ const newTabInput = document.getElementById("newTabInput");
 let tabs = [];
 let activeTabId = null;
 let tabIdCounter = 1;
-const NEWTAB_SIGN = "about:newtab";
+const NEWTAB_SIGN = "wgbrowser:newtab";
 
 function showNewTab() {
     iframe.style.display = "none";
@@ -252,13 +253,58 @@ function loadUrl(tid, rawUrl){
     if(!tab) return;
     let url = rawUrl.trim();
 
+    // ========== 自定义协议解析【优先执行】 ==========
+    if(url.startsWith("wgbrowser:")){
+        const cmd = url.replace("wgbrowser:","").toLowerCase();
+        if(cmd === "newtab"){
+            // wgbrowser:newtab → 新建标签，直接返回
+            newTab(NEWTAB_SIGN);
+            return;
+        }
+        if(cmd === "about"){
+            url = "./about.html";
+        }
+    }
+    if(url.startsWith("wgbrowserfiles:")){
+        // wgbrowserfiles:xxx.html → 同目录文件
+        const filePath = url.replace("wgbrowserfiles:","");
+        url = "./" + filePath;
+    }
+    // ====================================
+
+    if(url === NEWTAB_SIGN){
+        tab.historyStack.splice(tab.historyIndex+1);
+        tab.historyStack.push(url);
+        tab.historyIndex = tab.historyStack.length -1;
+        tab.url = url;
+        tab.title = url;
+        addrInput.value = url;
+        showNewTab();
+        renderTabs();
+        return;
+    }
+
+    // 【关键】如果是我们的自定义协议前缀，跳过搜索判断
+    if(rawUrl.startsWith("wgbrowser:") || rawUrl.startsWith("wgbrowserfiles:")){
+        tab.historyStack.splice(tab.historyIndex+1);
+        tab.historyStack.push(url);
+        tab.historyIndex = tab.historyStack.length -1;
+        tab.url = url;
+        tab.title = url;
+        addrInput.value = url;
+        hideNewTab();
+        iframe.src = url;
+        renderTabs();
+        return;
+    }
+
     // 判断输入是否为网址
     const isUrl = /^(https?:\/\/)|(\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,})/.test(url);
 
-    if(url !== NEWTAB_SIGN && !isUrl){
+    if(!isUrl){
         // 不是网址，使用Bing搜索引擎
         url = "https://www.bing.com/search?q=" + encodeURIComponent(rawUrl);
-    }else if(url !== NEWTAB_SIGN && !/^https?:\/\//.test(url)){
+    }else if(!/^https?:\/\//.test(url)){
         url = "https://"+url;
     }
 
@@ -268,12 +314,8 @@ function loadUrl(tid, rawUrl){
     tab.url = url;
     tab.title = url;
     addrInput.value = url;
-    if(url === NEWTAB_SIGN){
-        showNewTab();
-    }else{
-        hideNewTab();
-        iframe.src = url;
-    }
+    hideNewTab();
+    iframe.src = url;
     renderTabs();
 }
 
