@@ -26,7 +26,9 @@ const DEFAULT_APPS = [
     { id: "reg", name: "软件注册表", icon: "apps/reg/ico.png", path: "apps/reg/index.html" },
     { id: "appinstall", name: "wgppp软件安装器", icon: "apps/reg/ico.png", path: "apps/appinstall/index.html" },
     { id: "settings", name: "设置", icon: "apps/settings/ico.svg", path: "apps/settings/index.html" },
-    { id: "wgver", name: "关于Wildgoose BE", icon: "icon.png", path: "apps/wgver/index.html" }
+    { id: "wgver", name: "关于Wildgoose BE", icon: "icon.png", path: "apps/wgver/index.html" },
+    {"id": "browser","name": "浏览器","icon": "apps/browser/ico.svg","path": "apps/browser/index.html","color": "#2563eb","category": "网络","developer": "Wildgoose"}
+
 ];
 
 function getLocalApps() {
