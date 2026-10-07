@@ -176,7 +176,7 @@ function hideNewTab() {
     newTabPage.style.display = "none";
 }
 
-// 创建标签
+// 创建标签【修复版本】
 function newTab(url = NEWTAB_SIGN) {
     const tid = tabIdCounter++;
     let iframeSrc = url;
@@ -184,7 +184,7 @@ function newTab(url = NEWTAB_SIGN) {
     const tabData = {
         id: tid,
         title: url,
-        url: url, // 原始地址，地址栏永久显示这个
+        url: url,
         iframeSrc: iframeSrc,
         historyStack: [],
         historyIndex: -1
@@ -194,6 +194,10 @@ function newTab(url = NEWTAB_SIGN) {
     tabs.push(tabData);
     renderTabs();
     switchTab(tid);
+    // 重点修复：如果不是空白新标签，自动解析加载url
+    if(url !== NEWTAB_SIGN) {
+        loadUrl(tid, url);
+    }
 }
 
 // 渲染标签栏
