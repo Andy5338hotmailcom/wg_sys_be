@@ -3,27 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>浏览器</title>
+<title>Wildgoose Browser</title>
 <style>
 * {
     box-sizing: border-box;
     margin:0;
     padding:0;
-    font-family: system-ui,sans-serif;
+    font-family: system-ui, -apple-system, sans-serif;
 }
 body{
-    background:var(--wg-bg,#fff);
-    color:var(--wg-text,#111);
+    background:#fff;
+    color:#111;
     height:100vh;
     display:flex;
     flex-direction:column;
+    overflow:hidden;
 }
 /* 标签栏 */
 .tabbar{
     display:flex;
     gap:4px;
-    padding:6px 8px;
-    background:var(--wg-tab-bg,#e9e9e9);
+    padding:4px 6px;
+    background:#eee;
     overflow-x:auto;
     align-items:center;
 }
@@ -31,15 +32,15 @@ body{
     display:flex;
     align-items:center;
     gap:6px;
-    padding:5px 10px;
+    padding:4px 10px;
     border-radius:6px 6px 0 0;
-    background:var(--wg-tab,#ddd);
+    background:#ddd;
     min-width:120px;
     max-width:180px;
     cursor:pointer;
 }
 .tab.active{
-    background:var(--wg-bg,#fff);
+    background:#fff;
 }
 .tab-title{
     white-space:nowrap;
@@ -62,37 +63,36 @@ body{
     justify-content:center;
 }
 .tab-new{
-    width:30px;
-    height:30px;
-    border-radius:6px;
+    width:26px;
+    height:26px;
     border:none;
-    background:var(--wg-btn,#ddd);
+    background:#ddd;
+    border-radius:4px;
     cursor:pointer;
     font-size:18px;
-    flex-shrink:0;
 }
+/* 顶部导航栏 */
 .topbar{
     display:flex;
     gap:6px;
-    padding:8px;
+    padding:6px 8px;
     align-items:center;
+    border-bottom:1px solid #ddd;
 }
-button{
+.topbar button{
     border:none;
-    border-radius:6px;
-    padding:6px 10px;
+    border-radius:4px;
+    padding:4px 8px;
     cursor:pointer;
-    background:var(--wg-btn,#eee);
-    color:inherit;
+    background:#eee;
 }
 #addr{
     flex:1;
-    padding:7px 10px;
-    border:1px solid var(--wg-border,#ccc);
+    padding:6px 10px;
+    border:1px solid #ccc;
     border-radius:6px;
-    background:var(--wg-input-bg,#fff);
-    color:inherit;
 }
+/* iframe容器 */
 #frameWrap{
     flex:1;
     width:100%;
@@ -103,16 +103,20 @@ button{
     height:100%;
     border:none;
 }
+/* 新标签页 */
 .newtab{
     position:absolute;
     inset:0;
-    background:var(--wg-bg,#fff);
+    background:#fff;
     display:none;
     flex-direction:column;
     align-items:center;
     justify-content:center;
-    gap:24px;
-    padding:20px;
+    gap:32px;
+}
+.newtab h1{
+    font-size:32px;
+    font-weight:normal;
 }
 .newtab-search{
     width: min(600px,90%);
@@ -123,8 +127,6 @@ button{
     border-radius:999px;
     border:1px solid #ccc;
     font-size:1rem;
-    background:var(--wg-input-bg,#fff);
-    color:inherit;
 }
 </style>
 </head>
@@ -140,12 +142,13 @@ button{
     <button onclick="goHome()">🏠</button>
     <input id="addr" placeholder="输入网址，按回车访问" onkeydown="if(event.key==='Enter')navigate()">
     <button onclick="navigate()">前往</button>
+    <button onclick="newTab('wgbrowser:about')">关于</button>
 </div>
 
 <div id="frameWrap">
     <iframe id="webview" src="about:blank"></iframe>
     <div class="newtab" id="newTabPage">
-        <h2>Wildgoose 浏览器</h2>
+        <h1>Wildgoose 浏览器</h1>
         <div class="newtab-search">
             <input id="newTabInput" placeholder="搜索或输入网址" onkeydown="if(event.key==='Enter')navigateFromNewTab()">
         </div>
@@ -173,7 +176,7 @@ function hideNewTab() {
     newTabPage.style.display = "none";
 }
 
-// 创建标签：tab.url=原始地址，tab.iframeSrc=iframe真实加载地址
+// 创建标签
 function newTab(url = NEWTAB_SIGN) {
     const tid = tabIdCounter++;
     let iframeSrc = url;
@@ -181,8 +184,8 @@ function newTab(url = NEWTAB_SIGN) {
     const tabData = {
         id: tid,
         title: url,
-        url: url, // 原始输入地址，地址栏永远显示这个
-        iframeSrc: iframeSrc, // iframe真实加载路径
+        url: url, // 原始地址，地址栏永久显示这个
+        iframeSrc: iframeSrc,
         historyStack: [],
         historyIndex: -1
     };
@@ -193,6 +196,7 @@ function newTab(url = NEWTAB_SIGN) {
     switchTab(tid);
 }
 
+// 渲染标签栏
 function renderTabs(){
     const newTabBtn = tabBar.querySelector(".tab-new");
     tabBar.innerHTML = "";
@@ -211,11 +215,12 @@ function renderTabs(){
     })
 }
 
+// 切换标签
 function switchTab(tid){
     const tab = tabs.find(t=>t.id === tid);
     if(!tab) return;
     activeTabId = tid;
-    addrInput.value = tab.url; // 地址栏展示原始自定义协议
+    addrInput.value = tab.url;
     if(tab.url === NEWTAB_SIGN){
         showNewTab();
     }else{
@@ -225,6 +230,7 @@ function switchTab(tid){
     renderTabs();
 }
 
+// 关闭标签
 function closeTab(tid){
     if(tabs.length <= 1) return;
     const idx = tabs.findIndex(t=>t.id===tid);
@@ -238,7 +244,7 @@ function closeTab(tid){
     }
 }
 
-// 由外层地址栏发起导航
+// 地址栏跳转
 function navigate(){
     let rawUrl = addrInput.value.trim();
     if(!rawUrl) return;
@@ -257,11 +263,10 @@ function loadUrl(tid, rawUrl){
     let displayUrl = rawUrl;
     let iframeSrc = rawUrl;
 
-    // ========== 自定义协议解析【优先执行】 ==========
+    // 自定义协议优先解析
     if(rawUrl.startsWith("wgbrowser:")){
         const cmd = rawUrl.replace("wgbrowser:","").toLowerCase();
         if(cmd === "newtab"){
-            // wgbrowser:newtab → 新建标签，直接返回
             newTab(NEWTAB_SIGN);
             return;
         }
@@ -275,7 +280,6 @@ function loadUrl(tid, rawUrl){
         const filePath = rawUrl.replace("wgbrowserfiles:","");
         iframeSrc = "./" + filePath;
     }
-    // ====================================
 
     if(displayUrl === NEWTAB_SIGN){
         tab.historyStack.splice(tab.historyIndex+1);
@@ -303,7 +307,7 @@ function loadUrl(tid, rawUrl){
         return;
     }
 
-    // 普通网址/搜索分支
+    // 普通网址/搜索
     const isUrl = /^(https?:\/\/)|(\.[a-zA-Z0-9-]+\.[a-zA-Z]{2,})/.test(rawUrl);
     if(!isUrl){
         iframeSrc = "https://www.bing.com/search?q=" + encodeURIComponent(rawUrl);
