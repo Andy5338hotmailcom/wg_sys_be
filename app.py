@@ -26,4 +26,4 @@ if __name__ == '__main__':
         # 不返回或返回True则允许关闭
 
     window.events.closing += on_closing
-    webview.start()
+    webview.start(http_server=True)
