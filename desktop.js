@@ -429,6 +429,7 @@ function shutdown() { location.href = "shutdown.html"; }
 function restart() { location.href = "restart.html"; }
 function logout() { location.href = "logout.html"; }
 function desktopreflash() { location.href = "desktop.html"; }
+function updatesystose() { location.href = "./setup/update.html"; }
 
 // ==============================
 // 页面加载入口
